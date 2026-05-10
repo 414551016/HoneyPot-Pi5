@@ -2,18 +2,18 @@
 
 ## 1.1 MVP 系統定位
 
-你要做的是一個 **單機版／小型實驗版主動式資安防禦誘捕欺敵平台**，部署在 **Raspberry Pi 5** 上，使用 **Docker Compose** 管理多個服務。
+本次挑戰的是一個 **單機版／小型實驗版主動式資安防禦誘捕欺敵平台**，部署在 **Raspberry Pi 5** 上，使用 **Docker Compose** 管理多個服務。
 
 本 MVP 的核心目的如下：
 
-- 建立可被攻擊者互動的假目標
-- 收集攻擊行為與登入嘗試
-- 放置 honeycredential 與 honeyfile 誘導攻擊者互動
-- 將攻擊行為轉換成事件
-- 使用簡單 detection rules 判斷攻擊意圖
-- 將事件對應到 MITRE ATT&CK 與 MITRE Engage
-- 產生 Markdown / JSON 報告
-- 嚴格限制實驗環境，不影響真實內網
+1. 建立可被攻擊者互動的假目標。
+2. 收集攻擊行為與登入嘗試。
+3. 放置 honeycredential 與 honeyfile 誘導攻擊者互動。
+4. 將攻擊行為轉換成事件。
+5. 使用簡單 detection rules 判斷攻擊意圖。
+6. 將事件對應到 MITRE ATT&CK 與 MITRE Engage。
+7. 產生 Markdown / JSON 報告。
+8. 嚴格限制實驗環境，不影響真實內網
 
 本 MVP 不追求高互動完整企業環境，而是先做出一個 **可展示、可測試、可擴充的 deception lab**。
 
@@ -21,6 +21,7 @@
 
 ## 1.2 技術基礎
 
+| 類別 | 技術 |
 |---|---|
 | 硬體 | Raspberry Pi 5 |
 | 作業系統 | Raspberry Pi OS Lite 64-bit |

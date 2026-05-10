@@ -197,3 +197,32 @@ tree -L 3 /opt/deception-lab
   ```
   cat /opt/deception-lab/PHASE2_READY.md
   ```
+
+## Step 2.19：設定基本防火牆 UFW
+這一步要小心，因為如果你設定錯，可能會把自己 SSH 擋掉。
+- 先允許 SSH 管理 port 22
+  ```
+  sudo ufw allow 22/tcp
+  ```
+- 先允許之後會用到的 honeypot port
+  ```
+  sudo ufw allow 2222/tcp
+  sudo ufw allow 8080/tcp
+  ```
+- 啟用 UFW
+  ```
+  sudo ufw enable
+  ```
+- 查看防火牆狀態
+  ```
+  sudo ufw status verbose
+  結果：應該看到類似
+  Status: active
+  22/tcp    ALLOW IN
+  2222/tcp  ALLOW IN
+  8080/tcp  ALLOW IN
+  ```
+- 重要提醒：Docker 與 UFW
+  - Docker 官方文件提醒，如果使用 UFW 或 firewalld 管理防火牆，Docker 發布 container port 時可能繞過某些防火牆規則；較嚴格的規則應放在 Docker 的 DOCKER-USER chain。
+  - 第二階段先做基本防火牆即可。
+  - 到了第十二階段，我們會再補上更完整的隔離與 egress 限制。

@@ -83,3 +83,47 @@ sudo apt install -y \
   done
   ```
 - 加入 Docker 官方 GPG key
+```
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+```
+- 加入 Docker apt repository
+```
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+```
+- 安裝 Docker Engine 與 Compose plugin
+```
+sudo apt install -y \
+  docker-ce \
+  docker-ce-cli \
+  containerd.io \
+  docker-buildx-plugin \
+  docker-compose-plugin
+```
+
+## Step 2.12：啟動 Docker 並設定開機自動啟動
+- 執行：
+```
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+- 確認 Docker 狀態：
+```
+sudo systemctl status docker
+```
+- q
+
+## Step 2.13：讓 labuser 可以直接使用 docker
+- 把 labuser 加入 docker 群組：
+```
+sudo usermod -aG docker labuser
+exit
+```
+- 重新登入：ssh labuser@deception-pi.local
+- 測試：docker version

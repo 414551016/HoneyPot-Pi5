@@ -127,3 +127,73 @@ exit
 ```
 - 重新登入：ssh labuser@deception-pi.local
 - 測試：docker version
+
+## Step 2.14：測試 Docker 是否正常
+```
+docker run hello-world
+成功時會看到類似：Hello from Docker!
+這代表 Docker 可以正常拉 image 並啟動 container。
+```
+
+## Step 2.15：測試 Docker Compose 是否正常
+Docker Compose plugin 官方安裝文件說，可以用 docker compose version 測試安裝。
+```
+docker compose version
+成功時會看到類似：Docker Compose version v2.x.x
+```
+
+## Step 2.16：建立專案根目錄
+```
+sudo mkdir -p /opt/deception-lab
+sudo chown -R lss:lss /opt/deception-lab
+cd /opt/deception-lab
+pwd
+```
+
+## Step 2.17：建立基本資料夾
+- 執行：
+```
+mkdir -p \
+  cowrie \
+  fake-web \
+  parser \
+  data/logs/cowrie \
+  data/logs/web \
+  data/events \
+  data/samples/uploads \
+  reports \
+  scripts
+```
+- 查看資料夾：
+```
+tree -L 3 /opt/deception-lab
+```
+
+## Step 2.18：建立第二階段檢查檔
+- 執行：
+```
+cat > /opt/deception-lab/PHASE2_READY.md <<'EOF'
+# Phase 2 Ready
+
+This Raspberry Pi 5 is prepared for the deception lab MVP.
+
+Completed items:
+
+- Raspberry Pi OS installed
+- SSH enabled
+- System updated
+- Basic tools installed
+- Docker installed
+- Docker Compose plugin installed
+- Project directory created
+- Basic log/report folders created
+
+Project path:
+
+/opt/deception-lab
+EOF
+```
+- 確認檔案存在：
+  ```
+  cat /opt/deception-lab/PHASE2_READY.md
+  ```

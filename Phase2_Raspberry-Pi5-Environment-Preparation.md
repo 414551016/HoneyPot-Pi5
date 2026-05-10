@@ -69,3 +69,17 @@ sudo apt install -y \
 | `jq`            | 處理 JSON log |
 | `unzip`         | 解壓縮         |
 | `ufw`           | 基本防火牆       |
+
+## Step 2.9：檢查狀態
+- tree --version
+- df -h：Size：53G 
+- free -h：Mem:7.9Gi, Swap:512Mi，Raspberry Pi 5 有 4GB 或 8GB RAM 都可以做這個 MVP。
+
+# Step 2.11：安裝 Docker
+- 移除可能衝突的舊套件：如果顯示有些套件不存在，是正常的。
+  ```
+  for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
+    sudo apt remove -y "$pkg"
+  done
+  ```
+- 加入 Docker 官方 GPG key

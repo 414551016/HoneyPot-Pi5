@@ -297,6 +297,52 @@ sudo timedatectl set-timezone Asia/Taipei
   ```
   /opt/deception-lab/scripts/check_env.sh
   ```
+  執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/check_env.sh
+  === Hostname ===
+  lss
+  
+  === User ===
+  lss
+  
+  === Architecture ===
+  aarch64
+  
+  === OS ===
+  PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+  VERSION_CODENAME=trixie
+  
+  === Disk ===
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/mmcblk0p2   58G  4.5G   51G   9% /
+  
+  === Memory ===
+                 total        used        free      shared  buff/cache   available
+  Mem:           7.9Gi       311Mi       7.3Gi        13Mi       309Mi       7.6Gi
+  Swap:          2.0Gi          0B       2.0Gi
+  
+  === Docker ===
+  Client: 29.4.3 | Server: 29.4.3
+  
+  === Docker Compose ===
+  Docker Compose version v5.1.3
+  
+  === UFW ===
+  Status: active
+  Logging: on (low)
+  Default: deny (incoming), allow (outgoing), deny (routed)
+  New profiles: skip
+  
+  To                         Action      From
+  --                         ------      ----
+  22/tcp                     ALLOW IN    Anywhere
+  2222/tcp                   ALLOW IN    Anywhere
+  8080/tcp                   ALLOW IN    Anywhere
+  22/tcp (v6)                ALLOW IN    Anywhere (v6)
+  2222/tcp (v6)              ALLOW IN    Anywhere (v6)
+  8080/tcp (v6)              ALLOW IN    Anywhere (v6)
+  ```
 
 ## 第二階段完成後，你的 Raspberry Pi 狀態
 完成後，你的 Raspberry Pi 應該像這樣：

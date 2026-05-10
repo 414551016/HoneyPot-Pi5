@@ -22,6 +22,23 @@
 ## 1.2 技術基礎
 
 | 類別 | 技術 |
+|------|------|
+| 硬體 | Raspberry Pi 5 |
+| 作業系統 | Raspberry Pi OS Lite 64-bit |
+| 容器管理 | Docker + Docker Compose |
+| SSH honeypot | Cowrie |
+| 假 Web 管理介面 | Flask |
+| Web server | Python Flask development server，MVP 階段可用 |
+| Log 格式 | JSONL + plaintext log |
+| Event parser | Python |
+| Detection rules | YAML |
+| Report generator | Python |
+| 報告格式 | Markdown + JSON |
+| MITRE ATT&CK | Enterprise Matrix |
+| MITRE Engage | Prepare / Expose / Affect / Elicit / Understand |
+
+
+| 類別 | 技術 |
 |---|---|
 | 硬體 | Raspberry Pi 5 |
 | 作業系統 | Raspberry Pi OS Lite 64-bit |

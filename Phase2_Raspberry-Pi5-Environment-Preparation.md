@@ -226,3 +226,74 @@ tree -L 3 /opt/deception-lab
   - Docker 官方文件提醒，如果使用 UFW 或 firewalld 管理防火牆，Docker 發布 container port 時可能繞過某些防火牆規則；較嚴格的規則應放在 Docker 的 DOCKER-USER chain。
   - 第二階段先做基本防火牆即可。
   - 到了第十二階段，我們會再補上更完整的隔離與 egress 限制。
+
+## Step 2.20：確認目前開放 port
+```
+sudo ss -tulpn
+目前你應該至少會看到 SSH port 22。
+2222 和 8080 現在可能還不會出現，因為 Cowrie 和 Fake Web 還沒部署。這是正常的。
+```
+
+## Step 2.21：確認系統時間
+```
+timedatectl
+請確認有看到類似：
+Time zone: Asia/Taipei
+System clock synchronized: yes
+
+如果時區不是 Asia/Taipei，執行：
+sudo timedatectl set-timezone Asia/Taipei
+```
+
+## Step 2.22：建立常用操作腳本
+先建立一個檢查環境的腳本，之後每次都可以快速檢查 Raspberry Pi 狀態。
+- 執行：
+  ```
+  cat > /opt/deception-lab/scripts/check_env.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  echo "=== Hostname ==="
+  hostname
+  
+  echo
+  echo "=== User ==="
+  whoami
+  
+  echo
+  echo "=== Architecture ==="
+  uname -m
+  
+  echo
+  echo "=== OS ==="
+  cat /etc/os-release | grep -E 'PRETTY_NAME|VERSION_CODENAME'
+  
+  echo
+  echo "=== Disk ==="
+  df -h /
+  
+  echo
+  echo "=== Memory ==="
+  free -h
+  
+  echo
+  echo "=== Docker ==="
+  docker version --format 'Client: {{.Client.Version}} | Server: {{.Server.Version}}'
+  
+  echo
+  echo "=== Docker Compose ==="
+  docker compose version
+  
+  echo
+  echo "=== UFW ==="
+  sudo ufw status verbose
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/check_env.sh
+  ```
+- 執行：
+  ```
+  /opt/deception-lab/scripts/check_env.sh
+  ```

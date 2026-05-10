@@ -14,10 +14,10 @@
 
 Raspberry Pi 官方建議使用 Raspberry Pi Imager 將 Raspberry Pi OS 寫入 microSD 或其他開機媒體；Docker 官方文件也說明，64-bit Raspberry Pi OS 應依照 Debian 安裝方式安裝 Docker Engine，Compose 則以 Docker Compose plugin 方式安裝。
 
-## Step 2.1：用 Raspberry Pi Imager 安裝系統
+### Step 2.1：用 Raspberry Pi Imager 安裝系統
 - 下載 Raspberry Pi Imager，請注意：一定要選：Raspberry Pi OS Lite 64-bit
 
-## Step 2.2：在 Imager 裡先設定 SSH 和帳號
+### Step 2.2：在 Imager 裡先設定 SSH 和帳號
 - Hostname：lss
 - Username：不要用：pi、root、admin 等名稱，原因是這些名稱太常被攻擊者猜。
 - Password：
@@ -25,13 +25,13 @@ Raspberry Pi 官方建議使用 Raspberry Pi Imager 將 Raspberry Pi OS 寫入 m
 - 配置網路：
 - 設定地區：Timezone: Asia/Taipei
 
-## Step 2.4：找到 Raspberry Pi 的 IP
-## Step 2.5：從筆電 SSH 進 Raspberry Pi
+### Step 2.4：找到 Raspberry Pi 的 IP
+### Step 2.5：從筆電 SSH 進 Raspberry Pi
 ```
 ssh labuser@deception-pi.local
 ```
 
-## Step 2.6：確認你真的在 Raspberry Pi 裡
+### Step 2.6：確認你真的在 Raspberry Pi 裡
 - hostname
 - whoami
 - uname -m
@@ -297,3 +297,36 @@ sudo timedatectl set-timezone Asia/Taipei
   ```
   /opt/deception-lab/scripts/check_env.sh
   ```
+
+## 第二階段完成後，你的 Raspberry Pi 狀態
+完成後，你的 Raspberry Pi 應該像這樣：
+```
+Raspberry Pi 5
+├── Raspberry Pi OS Lite 64-bit
+├── SSH 管理入口
+│   └── port 22
+├── Docker
+├── Docker Compose plugin
+├── UFW firewall
+│   ├── allow 22/tcp
+│   ├── allow 2222/tcp
+│   └── allow 8080/tcp
+└── /opt/deception-lab
+    ├── cowrie
+    ├── fake-web
+    ├── parser
+    ├── data
+    │   ├── logs
+    │   ├── events
+    │   └── samples
+    ├── reports
+    └── scripts
+```
+
+### 現在先不要做的事
+- 不要啟動 Cowrie
+- 不要寫 docker-compose.yml
+- 不要開放到 Internet
+- 不要設定 port forwarding
+- 不要放真實帳密
+- 不要接到正式內網做攻擊測試

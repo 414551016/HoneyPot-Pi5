@@ -1093,3 +1093,80 @@ ls -lah /opt/deception-lab/data/logs/web
 tail -n 5 /opt/deception-lab/data/logs/web/web_access.jsonl
 tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
 ```
+- 目前系統狀態：
+    ```
+    Raspberry Pi 5
+    ├── 真實 SSH 管理入口
+    │   └── port 22
+    ├── Cowrie SSH Honeypot
+    │   └── port 2222
+    ├── Fake Web Admin Panel
+    │   └── port 8080
+    └── Logs
+        ├── /opt/deception-lab/data/logs/cowrie/cowrie-docker.log
+        └── /opt/deception-lab/data/logs/web/
+            ├── web_access.jsonl
+            └── web_auth.jsonl
+    ```
+- 目前檔案結構：
+    ```
+    lss@lss:/opt/deception-lab $ tree -L 3 /opt/deception-lab
+    /opt/deception-lab
+    ├── cowrie
+    │   ├── etc
+    │   ├── honeyfs
+    │   │   ├── etc
+    │   │   ├── home
+    │   │   ├── tmp
+    │   │   └── var
+    │   └── var
+    │       ├── lib
+    │       └── log
+    ├── data
+    │   ├── events
+    │   ├── logs
+    │   │   ├── cowrie
+    │   │   └── web
+    │   └── samples
+    │       └── uploads
+    ├── docker-compose.phase3.yml
+    ├── docker-compose.phase4.broken.yml
+    ├── docker-compose.phase4-cowrie-only.yml
+    ├── docker-compose.phase4.permission-error.yml
+    ├── docker-compose.yml
+    ├── fake-web
+    │   ├── app.py
+    │   ├── Dockerfile
+    │   ├── honeyfiles
+    │   │   ├── backup_config.ini
+    │   │   ├── database_passwords.txt
+    │   │   ├── secrets.txt
+    │   │   ├── ssh_keys_backup.txt
+    │   │   └── vpn_users.csv
+    │   ├── requirements.txt
+    │   ├── static
+    │   │   └── style.css
+    │   └── templates
+    │       ├── 404.html
+    │       ├── backup.html
+    │       ├── config.html
+    │       ├── dashboard.html
+    │       └── login.html
+    ├── parser
+    ├── PHASE2_READY.md
+    ├── PHASE3_READY.md
+    ├── PHASE4_READY.md
+    ├── PHASE5_READY.md
+    ├── README.md
+    ├── reports
+    └── scripts
+        ├── check_env.sh
+        ├── logs_lab.sh
+        ├── restart_lab.sh
+        ├── start_lab.sh
+        ├── status_lab.sh
+        └── stop_lab.sh
+    
+    25 directories, 30 files
+    
+    ```

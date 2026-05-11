@@ -782,8 +782,129 @@ pwd
   cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase4-cowrie-only.yml
   ```
 
+## Step 5.14：改寫 docker-compose.yml，加入 fake-web
+- 執行：
+    ```
+    cat > /opt/deception-lab/docker-compose.yml <<'EOF'
+    services:
+      cowrie:
+        image: cowrie/cowrie:latest
+        container_name: deception-cowrie
+        restart: unless-stopped
+        ports:
+          - "${HOST_SSH_HONEYPOT_PORT}:2222"
+        environment:
+          - TZ=${TZ}
+        volumes:
+          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+        networks:
+          - deception_net
+        security_opt:
+          - no-new-privileges:true
+    
+      fake-web:
+        build:
+          context: ./fake-web
+          dockerfile: Dockerfile
+        container_name: deception-fake-web
+        restart: unless-stopped
+        ports:
+          - "${HOST_WEB_PORT}:8080"
+        environment:
+          - TZ=${TZ}
+          - WEB_LOG_DIR=/app/logs
+          - HONEYFILE_DIR=/app/honeyfiles
+        volumes:
+          - ./data/logs/web:/app/logs
+          - ./fake-web/honeyfiles:/app/honeyfiles:ro
+        networks:
+          - deception_net
+        security_opt:
+          - no-new-privileges:true
+        depends_on:
+          - cowrie
+    
+    networks:
+      deception_net:
+        driver: bridge
+    EOF
+    ```
 
+## Step 5.15：檢查 Docker Compose 設定
+- 執行：
+    ```
+    cd /opt/deception-lab
+    docker compose config
+    ```
 
-
+## Step 5.16：啟動 Cowrie + Fake Web
+- 執行：
+    ```
+    /opt/deception-lab/scripts/start_lab.sh
+    第一次 build fake-web 會需要一點時間。
+    
+    完成後查看狀態：
+    docker compose ps
+    
+    你應該看到兩個服務：
+    deception-cowrie      Up
+    deception-fake-web    Up
+    ```
+- 執行結果：
+    ```
+    lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/start_lab.sh
+    [+] Starting Raspberry Pi Deception Lab...
+    [+] Building 24.9s (16/16) FINISHED
+     => [internal] load local bake definitions                                                                                           0.0s
+     => => reading from stdin 526B                                                                                                       0.0s
+     => [internal] load build definition from Dockerfile                                                                                 0.1s
+     => => transferring dockerfile: 516B                                                                                                 0.0s
+     => [internal] load metadata for docker.io/library/python:3.12-slim                                                                  2.4s
+     => [internal] load .dockerignore                                                                                                    0.1s
+     => => transferring context: 2B                                                                                                      0.0s
+     => [1/9] FROM docker.io/library/python:3.12-slim@sha256:ec948fa5f90f4f8907e89f4800cfd2d2e91e391a4bce4a6afa77ba265bc3a2fe            8.2s
+     => => resolve docker.io/library/python:3.12-slim@sha256:ec948fa5f90f4f8907e89f4800cfd2d2e91e391a4bce4a6afa77ba265bc3a2fe            0.0s
+     => => sha256:97e3d73b2d9f0d0a6c119c6e22eb7368104e0866e103a4c1c3189bd7e8ff235e 12.05MB / 12.05MB                                     2.1s
+     => => sha256:be513e2c6b2cc8e5703fb841f9a8d034ec4bba39cc3b2c86ae285f8075b8481d 250B / 250B                                           1.8s
+     => => sha256:8ba4a7ba167169f2aebc1c43730d586ce45a4a207e0540db8dd7f1330f9806b7 1.27MB / 1.27MB                                       2.0s
+     => => sha256:9ebf9a1d0c9ca1bcb377e9dba38a3fdd3e89cf37164f4245286c24f8cd50a39e 30.14MB / 30.14MB                                     6.2s
+     => => extracting sha256:9ebf9a1d0c9ca1bcb377e9dba38a3fdd3e89cf37164f4245286c24f8cd50a39e                                            0.7s
+     => => extracting sha256:8ba4a7ba167169f2aebc1c43730d586ce45a4a207e0540db8dd7f1330f9806b7                                            0.2s
+     => => extracting sha256:97e3d73b2d9f0d0a6c119c6e22eb7368104e0866e103a4c1c3189bd7e8ff235e                                            0.4s
+     => => extracting sha256:be513e2c6b2cc8e5703fb841f9a8d034ec4bba39cc3b2c86ae285f8075b8481d                                            0.1s
+     => [internal] load build context                                                                                                    0.3s
+     => => transferring context: 12.14kB                                                                                                 0.0s
+     => [2/9] WORKDIR /app                                                                                                               5.7s
+     => [3/9] COPY requirements.txt .                                                                                                    0.1s
+     => [4/9] RUN pip install --no-cache-dir -r requirements.txt                                                                         4.8s
+     => [5/9] COPY app.py .                                                                                                              0.2s
+     => [6/9] COPY templates ./templates                                                                                                 0.1s
+     => [7/9] COPY static ./static                                                                                                       0.1s
+     => [8/9] COPY honeyfiles ./honeyfiles                                                                                               0.1s
+     => [9/9] RUN mkdir -p /app/logs                                                                                                     0.3s
+     => exporting to image                                                                                                               2.1s
+     => => exporting layers                                                                                                              1.4s
+     => => exporting manifest sha256:27764b8e97acb3b7e77d342a0c8c1c36f5827b7a5d5f45f28aec53848069486f                                    0.0s
+     => => exporting config sha256:22622688f059c93f447931f4d07b03dab60efe9c829166f978c9591047a4899a                                      0.0s
+     => => exporting attestation manifest sha256:70236947533a104be4b07f6312c6f00b76b4d87097ed4e78b5873356e9406a34                        0.1s
+     => => exporting manifest list sha256:82147b59c46fb9372074bf12d85736407ecc4d11768b32388c9d5fe5ce3140aa                               0.0s
+     => => naming to docker.io/library/deception-lab-fake-web:latest                                                                     0.0s
+     => => unpacking to docker.io/library/deception-lab-fake-web:latest                                                                  0.4s
+     => resolving provenance for metadata file                                                                                           0.0s
+    [+] up 3/3
+     ✔ Image deception-lab-fake-web Built                                                                                                25.0s
+     ✔ Container deception-cowrie   Running                                                                                               0.0s
+     ✔ Container deception-fake-web Started                                                                                               0.5s
+    
+    [+] Current service status:
+    NAME                 IMAGE                    COMMAND                  SERVICE    CREATED        STATUS                  PORTS
+    deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     3 hours ago    Up 3 hours              0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+    deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   1 second ago   Up Less than a second   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+    
+    lss@lss:/opt/deception-lab $ docker compose ps
+    NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS          PORTS
+    deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     3 hours ago      Up 3 hours      0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+    deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   48 seconds ago   Up 47 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+    ```
 
 

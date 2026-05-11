@@ -374,12 +374,63 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
       driver: bridge
   ```
 
+## Step 3.14：測試啟動腳本
+測試我們剛剛做的 start script。
+- 執行：
+  ```
+  /opt/deception-lab/scripts/start_lab.sh
+  ```
+- 執行結果：
+  ```
+  第一次可能會下載 Alpine image，看到類似：
+    Unable to find image 'alpine:latest' locally
+    latest: Pulling from library/alpine
+  成功後應該會看到類似：
+    [+] Current service status:
+    ...
+    這裡 Exited 是正常的。
+    因為這個 placeholder 只會印一句話，等 5 秒後就結束。
+    
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/start_lab.sh
+  [+] Starting Raspberry Pi Deception Lab...
+  [+] up 6/6
+   ✔ Image alpine:latest                 Pulled                               5.2s
+   ✔ Network deception-lab_deception_net Created                              0.0s
+   ✔ Container deception-placeholder     Started                              1.0s
+  
+  [+] Current service status:
+  NAME                    IMAGE           COMMAND                  SERVICE       CREATED        STATUS                  PORTS
+  deception-placeholder   alpine:latest   "sh -c 'echo 'Decept…"   placeholder   1 second ago   Up Less than a second
 
+  ```
 
+## Step 3.15：查看狀態
+- 執行：
+  ```
+  /opt/deception-lab/scripts/status_lab.sh
+  ```
+- 執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/status_lab.sh
+  === Docker Compose Services ===
+  NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+  
+  === Docker Networks ===
+  7bc2cde6efdb   deception-lab_deception_net   bridge    local
+  
+  === Listening Ports ===
+  tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1136,fd=6))
+  tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1136,fd=7))
+  
+  === Disk Usage ===
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/mmcblk0p2   58G  4.5G   51G   9% /
+  
+  === Log Directories ===
+  4.0K    /opt/deception-lab/data/logs/cowrie
+  4.0K    /opt/deception-lab/data/logs/web
 
-
-
-
+  ```
 
 
 

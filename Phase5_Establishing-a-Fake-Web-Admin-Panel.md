@@ -958,18 +958,19 @@ pwd
     http://192.168.1.167:8080
     ```
 - 你應該會看到假的登入頁：
-```
-測試輸入：
-username: admin
-password: wrongpassword
-# Internal Device Management Console
-
-然後再測試 honeycredential：
-username: backup
-password: Backup2026!
-# 如果登入後看到 dashboard，就是正常。
-
-```
+  ![](images/login.png)
+    ```
+    測試輸入：
+    username: admin
+    password: wrongpassword
+    # Internal Device Management Console
+    
+    然後再測試 honeycredential：
+    username: backup
+    password: Backup2026!
+    # 如果登入後看到 dashboard，就是正常。
+    
+    ```
 
 
 

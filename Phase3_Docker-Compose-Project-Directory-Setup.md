@@ -39,12 +39,123 @@
 ```
 tree -L 2 /opt/deception-lab
 執行結果：
-/opt/deception-lab
-├── PHASE2_READY.md
+lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
+/opt/deception-lab/
 ├── cowrie
 ├── data
+│   ├── events
+│   ├── logs
+│   └── samples
 ├── fake-web
 ├── parser
+├── PHASE2_READY.md
 ├── reports
 └── scripts
+    └── check_env.sh
+
+10 directories, 2 files
+
 ```
+
+### Step 3.3：建立 .env
+.env 是 Docker Compose 會讀取的環境設定檔。
+- 執行：cat /opt/deception-lab/.env
+  ```
+  cat > /opt/deception-lab/.env <<'EOF'
+  # Deception Lab Environment Settings
+  
+  # Project
+  COMPOSE_PROJECT_NAME=deception-lab
+  TZ=Asia/Taipei
+  
+  # Host ports
+  HOST_SSH_HONEYPOT_PORT=2222
+  HOST_WEB_PORT=8080
+  
+  # Container ports
+  COWRIE_SSH_PORT=2222
+  FAKE_WEB_PORT=8080
+  
+  # Paths on Raspberry Pi host
+  PROJECT_ROOT=/opt/deception-lab
+  COWRIE_LOG_DIR=/opt/deception-lab/data/logs/cowrie
+  WEB_LOG_DIR=/opt/deception-lab/data/logs/web
+  EVENT_DIR=/opt/deception-lab/data/events
+  REPORT_DIR=/opt/deception-lab/reports
+  
+  # Lab identity
+  LAB_NAME=Raspberry Pi Deception Lab
+  LAB_OWNER=lss
+  LAB_HOSTNAME=lss
+  EOF
+  ```
+
+### Step 3.4：建立初版 docker-compose.yml
+這一版 docker-compose.yml 先建立專案架構與網路，不急著啟動 Cowrie 和 Fake Web。原因是：
+- Cowrie 需要第四階段設定。
+- Fake Web 需要第五階段建立程式。
+- 第三階段先確定 Docker Compose 專案格式正確。
+- 執行：cat /opt/deception-lab/docker-compose.yml
+  ```
+  cat > /opt/deception-lab/docker-compose.yml <<'EOF'
+  services:
+    placeholder:
+      image: alpine:latest
+      container_name: deception-placeholder
+      command: ["sh", "-c", "echo 'Deception Lab Docker Compose is ready.' && sleep 5"]
+      environment:
+        - TZ=${TZ}
+      networks:
+        - deception_net
+      restart: "no"
+  
+  networks:
+    deception_net:
+      driver: bridge
+  EOF
+  ```
+#### 為什麼現在只有 placeholder？
+- 這是刻意設計的。目前第三階段只是測試：
+  ```
+  Docker Compose 專案能不能被解析
+  network 能不能建立
+  script 能不能執行
+  ```
+- 所以先放一個很小的 Alpine Linux container 當測試服務。
+- 之後第四階段會把 Cowrie 加進來。
+- 第五階段會把 Fake Web 加進來。
+- 到時候這個 placeholder 會被移除。
+
+## Step 3.5：檢查 Docker Compose 設定是否正確
+- 執行：
+  ```
+  cd /opt/deception-lab
+  docker compose config
+  ```
+- 執行結果：
+  ```
+  如果設定正確，你會看到 Docker Compose 展開後的設定內容。
+  應該會看到類似：
+  lss@lss:/opt/deception-lab $ cd /opt/deception-lab
+  docker compose config
+  name: deception-lab
+  services:
+    placeholder:
+      command:
+        - sh
+        - -c
+        - echo 'Deception Lab Docker Compose is ready.' && sleep 5
+      container_name: deception-placeholder
+      environment:
+        TZ: Asia/Taipei
+      image: alpine:latest
+      networks:
+        deception_net: null
+      restart: "no"
+  networks:
+    deception_net:
+      name: deception-lab_deception_net
+      driver: bridge
+
+  # 如果沒有出現錯誤，代表 docker-compose.yml 格式正確。
+  ```

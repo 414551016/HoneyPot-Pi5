@@ -972,7 +972,124 @@ pwd
     
     ```
 
+## Step 5.20：測試 honeyfile 下載
+- 在瀏覽器開啟：
+  ```
+  http://192.168.1.167:8080/backup
+  ```
+  ```
+  點選：
+  secrets.txt
+  backup_config.ini
+  vpn_users.csv
+  ssh_keys_backup.txt
+  database_passwords.txt
+  ```
+- 也可以用 Raspberry Pi 測試：
+  ```
+  curl -O http://127.0.0.1:8080/download/secrets.txt
+  ```
+- 如果下載成功，先把測試下載的檔案刪掉：
+  ```
+  rm -f secrets.txt
+  ```
 
+## Step 5.21：檢查 Web log 是否產生
+- 執行：
+  ```
+  ls -lah /opt/deception-lab/data/logs/web
+  ```
+  ```
+  # 你應該看到：
+  web_access.jsonl
+  web_auth.jsonl
+  ```
+- 查看 access log：
+  ```
+  tail -n 20 /opt/deception-lab/data/logs/web/web_access.jsonl
+  ```
+- 查看 auth log：
+  ```
+  tail -n 20 /opt/deception-lab/data/logs/web/web_auth.jsonl
+  ```
 
+## Step 5.22：測試 scanner path 記錄
+- 在 Raspberry Pi 執行：
+    ```
+    curl -I http://127.0.0.1:8080/.env
+    curl -I http://127.0.0.1:8080/wp-admin
+    curl -I http://127.0.0.1:8080/phpmyadmin
+    ```
+- 然後查看：
+  ```
+  tail -n 20 /opt/deception-lab/data/logs/web/web_access.jsonl
+  ```
+  ```
+  # 你應該會看到：</>JSON
+  "is_scanner_probe": true
+  
+  # 這代表 Fake Web 能記錄掃描器常見路徑。
+  ```
 
+## Step 5.23：查看 fake-web container log
+- 執行：
+  ```
+  docker compose logs --tail=80 fake-web
+  ```
+  ```
+  正常會看到 Gunicorn 啟動與 HTTP request log。
+  ```
 
+## Step 5.24：建立第五階段完成紀錄
+- 執行：
+    ```
+    cat > /opt/deception-lab/PHASE5_READY.md <<'EOF'
+    # Phase 5 Ready
+    
+    Fake Web Admin Panel has been deployed.
+    
+    Completed items:
+    
+    - Flask fake admin panel created
+    - Dockerfile created
+    - fake-web service added to docker-compose.yml
+    - Host port 8080 mapped to fake-web container
+    - Login page tested
+    - Honeycredential tested
+    - Honeyfile download tested
+    - Web access log generated
+    - Web auth log generated
+    
+    Important URLs:
+    
+    - http://192.168.1.167:8080/login
+    - http://192.168.1.167:8080/dashboard
+    - http://192.168.1.167:8080/backup
+    - http://192.168.1.167:8080/config
+    - http://192.168.1.167:8080/api/status
+    - http://192.168.1.167:8080/robots.txt
+    
+    Web log files:
+    
+    - /opt/deception-lab/data/logs/web/web_access.jsonl
+    - /opt/deception-lab/data/logs/web/web_auth.jsonl
+    
+    Next phase:
+    
+    Phase 6 - Add and refine honeycredential / honeyfile.
+    EOF
+    ```
+- 確認：
+  ```
+  cat /opt/deception-lab/PHASE5_READY.md
+  ```
+
+# 第五階段完成檢查
+```
+docker compose ps
+sudo ss -tulpn | grep 8080
+curl -I http://127.0.0.1:8080/login
+ls -lah /opt/deception-lab/data/logs/web
+tail -n 5 /opt/deception-lab/data/logs/web/web_access.jsonl
+tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
+```

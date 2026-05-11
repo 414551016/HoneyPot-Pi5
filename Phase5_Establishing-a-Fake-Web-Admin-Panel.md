@@ -103,12 +103,12 @@ pwd
 
 ## Step 5.3：建立 Flask requirements
 - 執行：
-  ```
-cat > /opt/deception-lab/fake-web/requirements.txt <<'EOF'
-flask==3.0.3
-gunicorn==22.0.0
-EOF
-  ```
+    ```
+    cat > /opt/deception-lab/fake-web/requirements.txt <<'EOF'
+    flask==3.0.3
+    gunicorn==22.0.0
+    EOF
+    ```
 - 確認：
 
 

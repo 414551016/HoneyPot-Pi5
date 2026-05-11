@@ -38,13 +38,14 @@ pwd
 ```
 
 ## Step 5.2：建立 Fake Web 目錄結構
-```
-mkdir -p \
-  /opt/deception-lab/fake-web/templates \
-  /opt/deception-lab/fake-web/static \
-  /opt/deception-lab/fake-web/honeyfiles \
-  /opt/deception-lab/data/logs/web
-```
+- 執行：
+    ```
+    mkdir -p \
+      /opt/deception-lab/fake-web/templates \
+      /opt/deception-lab/fake-web/static \
+      /opt/deception-lab/fake-web/honeyfiles \
+      /opt/deception-lab/data/logs/web
+    ```
 - 執行結果：
   ```
   # Fake Web 目錄結構

@@ -334,7 +334,33 @@ cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase
    成功時會看到類似：
    LISTEN ... 0.0.0.0:2222
    這代表 Cowrie 的 SSH honeypot port 已經開起來。
-   
+
+   lss@lss:/opt/deception-lab $ sudo ss -tulpn | grep 2222
+   tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=7209,fd=8))
+   tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=7217,fd=8))
+   這代表
+   Cowrie SSH honeypot 已經成功對外開啟 2222 port
+   Docker 已經把 Raspberry Pi 的 2222 對應到 Cowrie container
    ```
 
-
+# 第四階段目前的成果
+現在你的系統是這樣：
+```
+Raspberry Pi 5
+├── 真實 SSH 管理入口
+│   └── port 22
+│
+├── Docker Compose
+│   └── Cowrie SSH Honeypot
+│       └── port 2222
+│
+└── Cowrie log
+    └── /opt/deception-lab/data/logs/cowrie/cowrie-docker.log
+```
+你可以隨時用這些指令管理 Cowrie：
+```
+/opt/deception-lab/scripts/start_lab.sh
+/opt/deception-lab/scripts/stop_lab.sh
+/opt/deception-lab/scripts/status_lab.sh
+docker compose logs --tail=80 cowrie
+```

@@ -330,4 +330,17 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
   └── scripts
   EOF
   ```
-- 
+- Basic Commands：
+  - Start lab:/opt/deception-lab/scripts/start_lab.sh
+  - Stop lab:/opt/deception-lab/scripts/stop_lab.sh
+  - Check status:/opt/deception-lab/scripts/status_lab.sh
+  - Show logs:/opt/deception-lab/scripts/logs_lab.sh
+  - Restart lab:/opt/deception-lab/scripts/restart_lab.sh
+- 安全規則：
+  - 在 MVP 測試期間，請勿將此實驗環境直接暴露於網路上。
+  - 請勿使用真實憑證。
+  - 請勿使用真實 SSH 金鑰。
+  - 請勿儲存真實的內部 IP 位址。
+  - 請勿將 Docker 套接字掛載到容器中。
+  - 請勿使用特權容器。
+  - 請勿為 honeypot 服務使用主機網路模式。

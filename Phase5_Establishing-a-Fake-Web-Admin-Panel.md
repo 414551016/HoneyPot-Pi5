@@ -377,17 +377,365 @@ pwd
     ```
 
 ## Step 5.6：建立 Dashboard 頁面
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/templates/dashboard.html <<'EOF'
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Dashboard - Internal Device Management Console</title>
+      <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+      <div class="page">
+        <h1>Device Management Dashboard</h1>
+        <p class="subtitle">Logged in as: {{ username }}</p>
+    
+        {% if alert %}
+        <div class="warning">{{ alert }}</div>
+        {% endif %}
+    
+        <div class="grid">
+          <div class="panel">
+            <h2>System Status</h2>
+            <p>Device: edge-gateway-01</p>
+            <p>Status: Degraded</p>
+            <p>Firmware: 4.2.7</p>
+          </div>
+    
+          <div class="panel">
+            <h2>Backup Status</h2>
+            <p>Last backup: 2026-05-10 02:00</p>
+            <p>Status: Warning</p>
+            <a href="/backup">View backup files</a>
+          </div>
+    
+          <div class="panel">
+            <h2>Configuration</h2>
+            <p>Local configuration mode enabled.</p>
+            <a href="/config">View configuration</a>
+          </div>
+    
+          <div class="panel">
+            <h2>API</h2>
+            <p>Device status endpoint:</p>
+            <code>/api/status</code>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    EOF
+    ```
 
+## Step 5.7：建立 Backup 頁面
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/templates/backup.html <<'EOF'
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Backup Files</title>
+      <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+      <div class="page">
+        <h1>Backup Files</h1>
+        <p class="subtitle">Restricted backup archive area</p>
+    
+        <div class="panel">
+          <h2>Available Files</h2>
+          <ul>
+            <li><a href="/download/secrets.txt">secrets.txt</a></li>
+            <li><a href="/download/backup_config.ini">backup_config.ini</a></li>
+            <li><a href="/download/vpn_users.csv">vpn_users.csv</a></li>
+            <li><a href="/download/ssh_keys_backup.txt">ssh_keys_backup.txt</a></li>
+            <li><a href="/download/database_passwords.txt">database_passwords.txt</a></li>
+          </ul>
+        </div>
+    
+        <p><a href="/dashboard">Back to dashboard</a></p>
+      </div>
+    </body>
+    </html>
+    EOF
+    ```
 
+## Step 5.8：建立 Config 頁面
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/templates/config.html <<'EOF'
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Configuration</title>
+      <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+      <div class="page">
+        <h1>Configuration</h1>
+        <p class="subtitle">Read-only configuration snapshot</p>
+    
+        <div class="panel">
+          <h2>Backup Server</h2>
+          <pre>
+    host=192.0.2.20
+    username=backup
+    password=Backup2026!
+    schedule=02:00
+          </pre>
+        </div>
+    
+        <div class="panel">
+          <h2>Local Admin</h2>
+          <pre>
+    username=operator
+    password=P@ssw0rd!
+    role=maintenance
+          </pre>
+        </div>
+    
+        <p><a href="/dashboard">Back to dashboard</a></p>
+      </div>
+    </body>
+    </html>
+    EOF
+    ```
+- 說明：
+    ```
+    注意：
+    這裡的 192.0.2.20 是文件範例用 IP，不是真實內網 IP。
+    ```
 
+## Step 5.9：建立 404 頁面
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/templates/404.html <<'EOF'
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>404 Not Found</title>
+      <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+      <div class="page">
+        <h1>404 Not Found</h1>
+        <p>The requested management resource was not found.</p>
+        <p><a href="/login">Return to login</a></p>
+      </div>
+    </body>
+    </html>
+    EOF
+    ```
 
+## Step 5.10：建立 CSS
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/static/style.css <<'EOF'
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101820;
+      color: #f4f4f4;
+    }
+    
+    a {
+      color: #7dd3fc;
+    }
+    
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .card {
+      width: 420px;
+      background: #182635;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+    
+    .subtitle {
+      color: #a8b3c7;
+    }
+    
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #0f172a;
+      color: #f8fafc;
+      box-sizing: border-box;
+    }
+    
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 12px;
+      border: 0;
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background: #1d4ed8;
+    }
+    
+    .error {
+      background: #7f1d1d;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 14px 0;
+    }
+    
+    .warning {
+      background: #78350f;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 14px 0;
+    }
+    
+    .hint {
+      margin-top: 18px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    
+    .page {
+      padding: 32px;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    
+    .panel {
+      background: #182635;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+    }
+    
+    pre {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    EOF
+    ```
 
+## Step 5.11：建立 honeyfiles
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/secrets.txt <<'EOF'
+    Internal Secret Notes
+    
+    Do not distribute.
+    
+    Temporary accounts:
+    admin / Admin@12345
+    backup / Backup2026!
+    operator / P@ssw0rd!
+    
+    Legacy VPN account:
+    iotadmin / iot_admin_2026
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/backup_config.ini <<'EOF'
+    [backup-server]
+    host=192.0.2.20
+    username=backup
+    password=Backup2026!
+    schedule=02:00
+    
+    [database]
+    host=192.0.2.30
+    username=dbadmin
+    password=ChangeMe_2026!
+    
+    [api]
+    endpoint=https://api.example.invalid/internal
+    token=fake-token-123456789
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/vpn_users.csv <<'EOF'
+    username,role,last_login,status
+    admin,administrator,2026-05-01,active
+    backup,backup-operator,2026-05-02,active
+    iotadmin,device-admin,2026-04-29,active
+    operator,maintenance,2026-05-03,disabled
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/vpn_users.csv <<'EOF'
+    username,role,last_login,status
+    admin,administrator,2026-05-01,active
+    backup,backup-operator,2026-05-02,active
+    iotadmin,device-admin,2026-04-29,active
+    operator,maintenance,2026-05-03,disabled
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/ssh_keys_backup.txt <<'EOF'
+    This is a fake SSH key backup file for deception testing.
+    
+    DO NOT USE REAL KEYS HERE.
+    
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    fake-fake-fake-fake-fake-fake-fake-fake
+    this-is-not-a-real-private-key
+    fake-fake-fake-fake-fake-fake-fake-fake
+    -----END OPENSSH PRIVATE KEY-----
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/fake-web/honeyfiles/database_passwords.txt <<'EOF'
+    Database Credential Backup
+    
+    db-main:
+    host=192.0.2.30
+    username=dbadmin
+    password=ChangeMe_2026!
+    
+    db-report:
+    host=192.0.2.31
+    username=report
+    password=Report@2026!
+    EOF
+    ```
+- 說明：
+    ```
+    這些檔案全部是假資料，不能放真實密碼。
 
-
-
-
-
-
+    ls -lah /opt/deception-lab/fake-web/honeyfiles
+    ```
 
 
 

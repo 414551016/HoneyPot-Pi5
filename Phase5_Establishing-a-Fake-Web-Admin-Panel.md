@@ -735,11 +735,52 @@ pwd
     這些檔案全部是假資料，不能放真實密碼。
 
     ls -lah /opt/deception-lab/fake-web/honeyfiles
+
+    lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/fake-web/honeyfiles
+    total 28K
+    drwxrwxr-x 2 lss lss 4.0K May 12 05:30 .
+    drwxrwxr-x 5 lss lss 4.0K May 12 05:14 ..
+    -rw-rw-r-- 1 lss lss  233 May 12 05:27 backup_config.ini
+    -rw-rw-r-- 1 lss lss  160 May 12 05:30 database_passwords.txt
+    -rw-rw-r-- 1 lss lss  172 May 12 05:26 secrets.txt
+    -rw-rw-r-- 1 lss lss  268 May 12 05:30 ssh_keys_backup.txt
+    -rw-rw-r-- 1 lss lss  192 May 12 05:29 vpn_users.csv
     ```
 
+## Step 5.12：建立 Dockerfile
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/Dockerfile <<'EOF'
+    FROM python:3.12-slim
+    
+    WORKDIR /app
+    
+    ENV PYTHONDONTWRITEBYTECODE=1
+    ENV PYTHONUNBUFFERED=1
+    ENV WEB_LOG_DIR=/app/logs
+    ENV HONEYFILE_DIR=/app/honeyfiles
+    
+    COPY requirements.txt .
+    RUN pip install --no-cache-dir -r requirements.txt
+    
+    COPY app.py .
+    COPY templates ./templates
+    COPY static ./static
+    COPY honeyfiles ./honeyfiles
+    
+    RUN mkdir -p /app/logs
+    
+    EXPOSE 8080
+    
+    CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+    EOF
+    ```
 
-
-
+## Step 5.13：備份目前 docker-compose.yml
+- 執行備份：
+  ```
+  cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase4-cowrie-only.yml
+  ```
 
 
 

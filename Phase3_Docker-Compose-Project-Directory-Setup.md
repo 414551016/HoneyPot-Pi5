@@ -432,7 +432,14 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
 
   ```
 
-
-
-
+## Step 3.16：查看 logs
+- 執行：
+  ```
+  docker compose logs
+  ```
+- 執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ docker compose logs
+  deception-placeholder  | Deception Lab Docker Compose is ready.
+  ```
 

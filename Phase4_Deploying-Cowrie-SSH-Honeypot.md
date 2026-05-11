@@ -1,6 +1,6 @@
 # 第四階段：部署 Cowrie SSH Honeypot
 何謂"Cowrie SSH Honeypot"？
-Cowrie SSH Honeypot 是一種開源的資安誘捕系統（Honeypot），專門用來模擬 SSH（以及 Telnet）服務，誘使攻擊者嘗試入侵，並全程記錄其行為，以利資安分析與研究。
+Cowrie SSH Honeypot 是一種開源的資安誘捕系統（Honeypot），專門用來模擬 SSH（以及 Telnet）服務，誘使攻擊者嘗試入侵，並全程記錄其行為，以利資安分析與研究。Cowrie SSH Honeypot 是目前最知名、最常用的 SSH 誘捕系統之一，用來安全地「讓駭客以為自己入侵成功」，從而蒐集完整攻擊行為，對資安防禦、研究與教學都非常重要。
 - 觀察與記錄 SSH 暴力破解（brute force）
 - 分析攻擊者登入後的指令、操作流程
 - 蒐集惡意檔案（malware）與攻擊工具
@@ -80,6 +80,141 @@ Cowrie 官方文件說，Cowrie 可以用 Docker 執行，快速測試方式是�
   ├── honeyfs
   └── var
   ```
+
+## Step 4.4：備份第三階段的 docker-compose.yml
+先備份目前的 placeholder 版本。
+```
+cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase3.yml
+```
+
+## Step 4.5：改寫 docker-compose.yml，加入 Cowrie
+- 現在把 placeholder 換成 Cowrie。
+   ```
+   cat > /opt/deception-lab/docker-compose.yml <<'EOF'
+   services:
+     cowrie:
+       image: cowrie/cowrie:latest
+       container_name: deception-cowrie
+       restart: unless-stopped
+       ports:
+         - "${HOST_SSH_HONEYPOT_PORT}:2222"
+       environment:
+         - TZ=${TZ}
+         - COWRIE_OUTPUT_JSONLOG_ENABLED=true
+         - COWRIE_SSH_VERSION=SSH-2.0-OpenSSH_8.4
+         - COWRIE_SSH_LISTEN_ENDPOINTS=tcp:2222:interface=0.0.0.0
+       volumes:
+         - ./cowrie/etc:/cowrie/cowrie-git/etc
+         - ./cowrie/var:/cowrie/cowrie-git/var
+         - ./data/logs/cowrie:/cowrie/cowrie-git/var/log/cowrie
+         - ./data/samples/uploads:/cowrie/cowrie-git/var/lib/cowrie/downloads
+       networks:
+         - deception_net
+       read_only: false
+       security_opt:
+         - no-new-privileges:true
+       cap_drop:
+         - ALL
+   
+   networks:
+     deception_net:
+       driver: bridge
+   EOF
+   ```
+- 這個 docker-compose.yml 做了什麼？
+  ```
+  ports:
+     - "${HOST_SSH_HONEYPOT_PORT}:2222"
+  意思是：Raspberry Pi 的 2222 port 連到 Cowrie container 裡面的 2222 port
+
+  ./data/logs/cowrie:/cowrie/cowrie-git/var/log/cowrie
+  意思是：Cowrie container 裡的 log 會保存到 Raspberry Pi 的 /opt/deception-lab/data/logs/cowrie
+
+  注：Cowrie 的 Docker 版本可以使用環境變數調整設定，格式是 COWRIE_ 加上設定區段與名稱；也可以透過 volume 掛載設定資料。
+  ```
+
+## Step 4.6：檢查 Compose 設定
+- 執行：
+  ```
+  cd /opt/deception-lab
+  docker compose config
+  ```
+- 執行結果：
+  ```
+  如果沒有錯誤，代表 YAML 格式正確。
+  lss@lss:/opt/deception-lab $ cd /opt/deception-lab
+   docker compose config
+   name: deception-lab
+   services:
+     cowrie:
+       cap_drop:
+         - ALL
+       container_name: deception-cowrie
+       environment:
+         COWRIE_OUTPUT_JSONLOG_ENABLED: "true"
+         COWRIE_SSH_LISTEN_ENDPOINTS: tcp:2222:interface=0.0.0.0
+         COWRIE_SSH_VERSION: SSH-2.0-OpenSSH_8.4
+         TZ: Asia/Taipei
+       image: cowrie/cowrie:latest
+       networks:
+         deception_net: null
+       ports:
+         - mode: ingress
+           target: 2222
+           published: "2222"
+           protocol: tcp
+       restart: unless-stopped
+       security_opt:
+         - no-new-privileges:true
+       volumes:
+         - type: bind
+           source: /opt/deception-lab/cowrie/etc
+           target: /cowrie/cowrie-git/etc
+           bind: {}
+         - type: bind
+           source: /opt/deception-lab/cowrie/var
+           target: /cowrie/cowrie-git/var
+           bind: {}
+         - type: bind
+           source: /opt/deception-lab/data/logs/cowrie
+           target: /cowrie/cowrie-git/var/log/cowrie
+           bind: {}
+         - type: bind
+           source: /opt/deception-lab/data/samples/uploads
+           target: /cowrie/cowrie-git/var/lib/cowrie/downloads
+           bind: {}
+   networks:
+     deception_net:
+       name: deception-lab_deception_net
+       driver: bridge
+  ```
+    
+## Step 4.7：啟動 Cowrie
+- 執行：
+  ```
+  /opt/deception-lab/scripts/start_lab.sh
+  ```
+- 執行結果：
+  ```
+  第一次會下載 cowrie/cowrie:latest image，可能需要一點時間。
+  成功時會看到類似：
+  NAME               IMAGE                  SERVICE   STATUS
+  deception-cowrie   cowrie/cowrie:latest   cowrie    Up
+
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/start_lab.sh
+   [+] Starting Raspberry Pi Deception Lab...
+   [+] up 57/57
+    ✔ Image cowrie/cowrie:latest          Pulled                                                              19.5s
+    ✔ Network deception-lab_deception_net Created                                                              0.0s
+    ✔ Container deception-cowrie          Started                                                             12.7s
+   
+   [+] Current service status:
+   NAME               IMAGE                  COMMAND                  SERVICE   CREATED          STATUS                  PORTS
+   deception-cowrie   cowrie/cowrie:latest   "/cowrie/cowrie-env/…"   cowrie    13 seconds ago   Up Less than a second   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+  ```
+
+
+
 
 
 

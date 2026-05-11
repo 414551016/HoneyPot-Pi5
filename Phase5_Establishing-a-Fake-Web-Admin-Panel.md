@@ -110,7 +110,210 @@ pwd
     EOF
     ```
 - 確認：
+  ```
+  cat /opt/deception-lab/fake-web/requirements.txt
+  ```
 
+## Step 5.4：建立 Fake Web 主程式 app.py
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/app.py <<'EOF'
+    from flask import Flask, request, render_template, redirect, url_for, send_from_directory, jsonify
+    from datetime import datetime, timezone
+    import json
+    import os
+    import hashlib
+    
+    app = Flask(__name__)
+    
+    LOG_DIR = os.environ.get("WEB_LOG_DIR", "/app/logs")
+    HONEYFILE_DIR = os.environ.get("HONEYFILE_DIR", "/app/honeyfiles")
+    
+    ACCESS_LOG = os.path.join(LOG_DIR, "web_access.jsonl")
+    AUTH_LOG = os.path.join(LOG_DIR, "web_auth.jsonl")
+    
+    HONEYCREDENTIALS = {
+        "admin": "Admin@12345",
+        "backup": "Backup2026!",
+        "iotadmin": "iot_admin_2026",
+        "operator": "P@ssw0rd!"
+    }
+    
+    SCANNER_PATHS = [
+        "/admin",
+        "/wp-admin",
+        "/wp-login.php",
+        "/phpmyadmin",
+        "/.env",
+        "/config.php",
+        "/server-status",
+        "/actuator/env",
+        "/api/v1/users"
+    ]
+    
+    
+    def now_iso():
+        return datetime.now(timezone.utc).isoformat()
+    
+    
+    def client_ip():
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.remote_addr
+    
+    
+    def write_jsonl(path, obj):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    
+    
+    def sha256_text(value):
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    
+    
+    @app.before_request
+    def log_request():
+        path = request.path
+        is_scanner_probe = path in SCANNER_PATHS
+    
+        event = {
+            "timestamp": now_iso(),
+            "source": "fake-web",
+            "event_type": "web_request",
+            "src_ip": client_ip(),
+            "method": request.method,
+            "path": path,
+            "query_string": request.query_string.decode("utf-8", errors="ignore"),
+            "user_agent": request.headers.get("User-Agent", ""),
+            "is_scanner_probe": is_scanner_probe,
+            "tags": ["web", "request"] + (["scanner-probe"] if is_scanner_probe else [])
+        }
+    
+        write_jsonl(ACCESS_LOG, event)
+    
+    
+    @app.route("/")
+    def index():
+        return redirect(url_for("login"))
+    
+    
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        if request.method == "POST":
+            username = request.form.get("username", "")
+            password = request.form.get("password", "")
+    
+            honeycredential_used = (
+                username in HONEYCREDENTIALS and HONEYCREDENTIALS[username] == password
+            )
+    
+            event = {
+                "timestamp": now_iso(),
+                "source": "fake-web",
+                "event_type": "web_login_attempt",
+                "src_ip": client_ip(),
+                "username": username,
+                "password_sha256": sha256_text(password),
+                "password_length": len(password),
+                "honeycredential_used": honeycredential_used,
+                "user_agent": request.headers.get("User-Agent", ""),
+                "severity": "high" if honeycredential_used else "medium",
+                "tags": ["web", "login"] + (["honeycredential"] if honeycredential_used else [])
+            }
+    
+            write_jsonl(AUTH_LOG, event)
+    
+            if honeycredential_used:
+                return render_template(
+                    "dashboard.html",
+                    username=username,
+                    alert="Authentication accepted. Some modules are temporarily unavailable."
+                )
+    
+            return render_template(
+                "login.html",
+                error="Invalid username or password. Please try again."
+            )
+    
+        return render_template("login.html")
+    
+    
+    @app.route("/dashboard")
+    def dashboard():
+        return render_template(
+            "dashboard.html",
+            username="guest",
+            alert="Read-only maintenance mode is enabled."
+        )
+    
+    
+    @app.route("/backup")
+    def backup():
+        return render_template("backup.html")
+    
+    
+    @app.route("/config")
+    def config():
+        return render_template("config.html")
+    
+    
+    @app.route("/download/<path:filename>")
+    def download_honeyfile(filename):
+        event = {
+            "timestamp": now_iso(),
+            "source": "fake-web",
+            "event_type": "web_honeyfile_access",
+            "src_ip": client_ip(),
+            "filename": filename,
+            "path": f"/download/{filename}",
+            "user_agent": request.headers.get("User-Agent", ""),
+            "severity": "high",
+            "tags": ["web", "honeyfile", "download"]
+        }
+    
+        write_jsonl(ACCESS_LOG, event)
+    
+        return send_from_directory(HONEYFILE_DIR, filename, as_attachment=True)
+    
+    
+    @app.route("/api/status")
+    def api_status():
+        return jsonify({
+            "status": "degraded",
+            "device": "edge-gateway-01",
+            "backup": "warning",
+            "auth": "local",
+            "maintenance": True
+        })
+    
+    
+    @app.route("/robots.txt")
+    def robots():
+        content = """User-agent: *
+    Disallow: /admin
+    Disallow: /backup
+    Disallow: /config
+    Disallow: /download/
+    """
+        return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
+    
+    
+    @app.route("/admin")
+    def admin():
+        return redirect(url_for("login"))
+    
+    
+    @app.errorhandler(404)
+    def not_found(error):
+        return render_template("404.html"), 404
+    
+    
+    if __name__ == "__main__":
+        app.run(host="0.0.0.0", port=8080)
+    EOF
+    ```
 
 
 

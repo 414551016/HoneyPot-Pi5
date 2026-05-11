@@ -443,3 +443,71 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
   deception-placeholder  | Deception Lab Docker Compose is ready.
   ```
 
+## Step 3.17：停止測試服務
+- 執行：
+  ```
+  /opt/deception-lab/scripts/stop_lab.sh
+  ```
+- 執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/stop_lab.sh
+  [+] Stopping Raspberry Pi Deception Lab...
+  [+] down 2/2
+   ✔ Container deception-placeholder     Removed                                                              0.1s
+   ✔ Network deception-lab_deception_net Removed                                                              0.2s
+  
+  [+] Lab stopped.
+  ```
+
+## Step 3.18：建立第三階段完成紀錄
+- 執行：
+  ```
+  cat > /opt/deception-lab/PHASE3_READY.md <<'EOF'
+  # Phase 3 Ready
+  
+  Docker Compose project structure has been created.
+  
+  Completed items:
+  
+  - .env created
+  - docker-compose.yml created
+  - Docker Compose config verified
+  - start_lab.sh created
+  - stop_lab.sh created
+  - status_lab.sh created
+  - logs_lab.sh created
+  - restart_lab.sh created
+  - README.md created
+  - Placeholder service tested
+  
+  Next phase:
+  
+  Phase 4 - Deploy Cowrie SSH honeypot.
+  EOF
+  ```
+- 確認：cat /opt/deception-lab/PHASE3_READY.md
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

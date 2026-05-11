@@ -907,4 +907,71 @@ pwd
     deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   48 seconds ago   Up 47 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
     ```
 
+## Step 5.17：確認 8080 port 有開
+- 執行：
+    ```
+    sudo ss -tulpn | grep 8080
+    ```
+- 執行結果：
+    ```
+    成功應該看到類似：
+    0.0.0.0:8080
+    [::]:8080
+    
+    lss@lss:/opt/deception-lab $ sudo ss -tulpn | grep 8080
+    [sudo] password for lss:
+    tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=8857,fd=8))
+    tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=8864,fd=8))
+    
+    ```
+
+## Step 5.18：在 Raspberry Pi 本機測試 Web
+- 測試登入：
+    ```
+    curl -I http://127.0.0.1:8080/login
+    ```
+    ```
+    # 結果：
+    lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/login
+    HTTP/1.1 200 OK
+    Server: gunicorn
+    Date: Mon, 11 May 2026 21:42:08 GMT
+    Connection: close
+    Content-Type: text/html; charset=utf-8
+    Content-Length: 913
+    ```
+- 再測試 API：
+    ```
+    curl http://127.0.0.1:8080/api/status
+    ```
+    ```
+    應該看到類似：
+    {"auth":"local","backup":"warning","device":"edge-gateway-01","maintenance":true,"status":"degraded"}
+    
+    lss@lss:/opt/deception-lab $ curl http://127.0.0.1:8080/api/status
+    {"auth":"local","backup":"warning","device":"edge-gateway-01","maintenance":true,"status":"degraded"}
+    ```
+
+## Step 5.19：用瀏覽器測試
+- 遠端瀏覽：
+    ```
+    http://192.168.1.167:8080
+    ```
+- 你應該會看到假的登入頁：
+```
+測試輸入：
+username: admin
+password: wrongpassword
+# Internal Device Management Console
+
+然後再測試 honeycredential：
+username: backup
+password: Backup2026!
+# 如果登入後看到 dashboard，就是正常。
+
+```
+
+
+
+
 

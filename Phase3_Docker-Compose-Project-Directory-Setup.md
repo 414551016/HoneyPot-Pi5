@@ -159,3 +159,175 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
 
   # 如果沒有出現錯誤，代表 docker-compose.yml 格式正確。
   ```
+
+## Step 3.6：建立啟動腳本 start_lab.sh
+- 這個腳本之後用來啟動整個平台。請執行：
+  ```
+  cat > /opt/deception-lab/scripts/start_lab.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  cd /opt/deception-lab
+  
+  echo "[+] Starting Raspberry Pi Deception Lab..."
+  docker compose up -d
+  
+  echo
+  echo "[+] Current service status:"
+  docker compose ps
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/start_lab.sh
+  ```
+
+## Step 3.7：建立停止腳本 stop_lab.sh
+- 請執行：
+  ```
+  cat > /opt/deception-lab/scripts/stop_lab.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  cd /opt/deception-lab
+  
+  echo "[+] Stopping Raspberry Pi Deception Lab..."
+  docker compose down
+  
+  echo
+  echo "[+] Lab stopped."
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/stop_lab.sh
+  ```
+
+## Step 3.8：建立狀態檢查腳本 status_lab.sh
+- 請執行：
+  ```
+  cat > /opt/deception-lab/scripts/status_lab.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  cd /opt/deception-lab
+  
+  echo "=== Docker Compose Services ==="
+  docker compose ps
+  
+  echo
+  echo "=== Docker Networks ==="
+  docker network ls | grep deception || true
+  
+  echo
+  echo "=== Listening Ports ==="
+  sudo ss -tulpn | grep -E ':22|:2222|:8080' || true
+  
+  echo
+  echo "=== Disk Usage ==="
+  df -h /
+  
+  echo
+  echo "=== Log Directories ==="
+  du -sh /opt/deception-lab/data/logs/* 2>/dev/null || true
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/status_lab.sh
+  ```
+
+## Step 3.9：建立 log 查看腳本 logs_lab.sh
+- 請執行：
+  ```
+  cat > /opt/deception-lab/scripts/logs_lab.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  cd /opt/deception-lab
+  
+  echo "[+] Showing Docker Compose logs..."
+  docker compose logs --tail=100 -f
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/logs_lab.sh
+  ```
+
+## Step 3.10：建立重啟腳本 restart_lab.sh
+- 請執行：
+  ```
+  cat > /opt/deception-lab/scripts/restart_lab.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -e
+  
+  cd /opt/deception-lab
+  
+  echo "[+] Restarting Raspberry Pi Deception Lab..."
+  docker compose down
+  docker compose up -d
+  
+  echo
+  echo "[+] Current service status:"
+  docker compose ps
+  EOF
+  ```
+- 設定可執行：chmod +x /opt/deception-lab/scripts/restart_lab.sh
+
+## Step 3.11：建立 README.md
+這個 README 是專案說明檔，記錄目前平台怎麼啟動、停止、查看狀態。
+- 請執行：
+  ```
+  cat > /opt/deception-lab/README.md <<'EOF'
+  # Raspberry Pi 5 Deception Lab MVP
+  
+  This project is a small standalone deception and honeypot lab running on Raspberry Pi 5.
+  
+  ## Current Stage
+  
+  Phase 3: Docker Compose project structure created.
+  
+  ## Host Information
+  
+  - Hostname: lss
+  - Username: lss
+  - Project path: /opt/deception-lab
+  - Management SSH port: 22
+  - Cowrie SSH honeypot port: 2222
+  - Fake Web Admin port: 8080
+  
+  ## Main Components
+  
+  Planned components:
+  
+  1. Cowrie SSH Honeypot
+  2. Fake Web Admin Panel
+  3. Honeycredentials
+  4. Honeyfiles
+  5. Log Collector
+  6. Python Event Parser
+  7. MITRE ATT&CK / MITRE Engage Mapping
+  8. Markdown / JSON Report Generator
+  
+  ## Directory Structure
+  
+  ```text
+  /opt/deception-lab
+  ├── docker-compose.yml
+  ├── .env
+  ├── cowrie
+  ├── fake-web
+  ├── parser
+  ├── data
+  │   ├── logs
+  │   │   ├── cowrie
+  │   │   └── web
+  │   ├── events
+  │   └── samples
+  │       └── uploads
+  ├── reports
+  └── scripts
+  EOF
+  ```
+- 

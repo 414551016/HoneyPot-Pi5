@@ -344,3 +344,44 @@ lss@lss:/opt/deception-lab $ tree -L 2 /opt/deception-lab/
   - 請勿將 Docker 套接字掛載到容器中。
   - 請勿使用特權容器。
   - 請勿為 honeypot 服務使用主機網路模式。
+
+## Step 3.13：測試 Docker Compose config
+- 請執行：
+  ```
+  cd /opt/deception-lab
+  docker compose config
+  ```
+- 執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ docker compose config
+  name: deception-lab
+  services:
+    placeholder:
+      command:
+        - sh
+        - -c
+        - echo 'Deception Lab Docker Compose is ready.' && sleep 5
+      container_name: deception-placeholder
+      environment:
+        TZ: Asia/Taipei
+      image: alpine:latest
+      networks:
+        deception_net: null
+      restart: "no"
+  networks:
+    deception_net:
+      name: deception-lab_deception_net
+      driver: bridge
+  ```
+
+
+
+
+
+
+
+
+
+
+
+

@@ -314,10 +314,69 @@ pwd
         app.run(host="0.0.0.0", port=8080)
     EOF
     ```
+- 這個程式會：
+    ```
+    1. 顯示假登入頁
+    2. 記錄所有 HTTP request
+    3. 記錄登入帳密
+    4. 偵測 honeycredential
+    5. 提供 honeyfile 下載
+    6. 產生 JSONL log
+    ```
 
+## Step 5.5：建立登入頁模板
+- 執行：
+    ```
+    cat > /opt/deception-lab/fake-web/templates/login.html <<'EOF'
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Internal Device Management Console</title>
+      <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+      <div class="login-container">
+        <div class="card">
+          <h1>Internal Device Management Console</h1>
+          <p class="subtitle">Edge Gateway Administration Portal</p>
+    
+          <!-- TODO: remove temporary backup credential before production -->
+          <!-- backup / Backup2026! -->
+    
+          {% if error %}
+          <div class="error">{{ error }}</div>
+          {% endif %}
+    
+          <form method="POST" action="/login">
+            <label>Username</label>
+            <input type="text" name="username" autocomplete="off" autofocus>
+    
+            <label>Password</label>
+            <input type="password" name="password" autocomplete="off">
+    
+            <button type="submit">Login</button>
+          </form>
+    
+          <div class="hint">
+            System notice: backup synchronization is delayed.
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    EOF
+    ```
+- 說明：
+    ```
+    這裡故意放了一個 HTML 註解：
+    backup / Backup2026!
+    
+    這是 honeycredential。
+    如果攻擊者看原始碼並拿這組帳密登入，我們就能記錄到。
+    ```
 
-
-
+## Step 5.6：建立 Dashboard 頁面
 
 
 

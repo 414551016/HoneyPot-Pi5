@@ -736,4 +736,140 @@ mkdir -p \
         {"timestamp": "2026-05-11T22:18:07.651474+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "backup", "password_sha256": "0ecba7213823d57d8b9c6510186aa9ba9e401b2f4508e792f8f3ca4aec6394e1", "password_length": 12, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
         {"timestamp": "2026-05-12T18:36:26.543366+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
         ```
+- 再匯出 Cowrie log
+  因為你剛剛已經成功登入 Cowrie，請執行：
+    - 執行：
+        ```
+        docker compose logs --no-color cowrie > /opt/deception-lab/data/logs/cowrie/cowrie-docker.log
+        ```
+    - 然後確認登入紀錄：
+        ```
+        grep -E "login attempt|backup|logged in|Command found|CMD" /opt/deception-lab/data/logs/cowrie/cowrie-docker.log | tail -n 40
+        ```
+        ```
+        lss@lss:/opt/deception-lab $ docker compose logs --no-color cowrie > /opt/deception-lab/data/logs/cowrie/cowrie-docker.log
+        lss@lss:/opt/deception-lab $ grep -E "login attempt|backup|logged in|Command found|CMD" /opt/deception-lab/data/logs/cowrie/cowrie-docker.log | tail -n 40
+        deception-cowrie  | 2026-05-13T02:26:29+0800 [cowrie.ssh.userauth.HoneyPotSSHUserAuthServer#debug] b'backup' trying auth b'none'
+        deception-cowrie  | 2026-05-13T02:26:42+0800 [cowrie.ssh.userauth.HoneyPotSSHUserAuthServer#debug] b'backup' trying auth b'password'
+        deception-cowrie  | 2026-05-13T02:26:42+0800 [HoneyPotSSHTransport,0,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded
+        deception-cowrie  | 2026-05-13T02:26:42+0800 [cowrie.ssh.userauth.HoneyPotSSHUserAuthServer#debug] b'backup' authenticated with b'password'
+        deception-cowrie  | 2026-05-13T02:27:07+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: whoami
+        deception-cowrie  | 2026-05-13T02:27:07+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: whoami
+        deception-cowrie  | 2026-05-13T02:27:11+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: pwd
+        deception-cowrie  | 2026-05-13T02:27:11+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: pwd
+        deception-cowrie  | 2026-05-13T02:27:14+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: is
+        deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls
+        deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: ls
+        deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin
+        deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: ls /home/admin
+        deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin
+        deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: ls /home/admin
+        deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt
+        deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: cat /home/admin/secrets.txt
+        deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit
+        deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: exit
+        deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] avatar backup logging out        
+        ```
+- 小結
+
+### Step 6 補做：建立 check_assets.sh
+因為執行：/opt/deception-lab/scripts/check_assets.sh  出現 No such file or directory 這代表你還沒有建立 check_assets.sh 腳本。
+- 執行：
+    ```
+    cat > /opt/deception-lab/scripts/check_assets.sh <<'EOF'
+    #!/usr/bin/env bash
+    set -e
+    
+    echo "=== Deception Assets File ==="
+    ls -lah /opt/deception-lab/deception_assets.yml
+    
+    echo
+    echo "=== Cowrie userdb ==="
+    ls -lah /opt/deception-lab/cowrie/etc/userdb.txt
+    echo
+    cat /opt/deception-lab/cowrie/etc/userdb.txt
+    
+    echo
+    echo "=== Fake Web Honeyfiles ==="
+    ls -lah /opt/deception-lab/fake-web/honeyfiles
+    
+    echo
+    echo "=== Cowrie Honeyfs Key Files ==="
+    for f in \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/secrets.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/backup_config.ini \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/vpn_users.csv \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/ssh_keys_backup.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/database_passwords.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/backup/backup_jobs.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/operator/maintenance_notes.txt \
+      /opt/deception-lab/cowrie/honeyfs/etc/edge-gateway/app.conf
+    do
+      if [ -f "$f" ]; then
+        echo "[OK] $f"
+      else
+        echo "[MISSING] $f"
+      fi
+    done
+    EOF
+    ```
+    設定可執行權限：
+    ```
+    chmod +x /opt/deception-lab/scripts/check_assets.sh
+    ```  
+    執行檢查：
+    ```
+    /opt/deception-lab/scripts/check_assets.sh
+    
+    lss@lss:/opt/deception-lab $ chmod +x /opt/deception-lab/scripts/check_assets.sh
+    lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/check_assets.sh
+    === Deception Assets File ===
+    -rw-rw-r-- 1 lss lss 3.9K May 13 01:47 /opt/deception-lab/deception_assets.yml
+    
+    === Cowrie userdb ===
+    -rw-rw-r-- 1 lss lss 363 May 13 01:51 /opt/deception-lab/cowrie/etc/userdb.txt
+    
+    # Cowrie fake SSH credential database
+    # Format:
+    # username:x:password
+    #
+    # These are deception-only credentials.
+    # Do not use real credentials here.
+    
+    admin:x:Admin@12345
+    backup:x:Backup2026!
+    iotadmin:x:iot_admin_2026
+    operator:x:P@ssw0rd!
+    
+    # Common brute-force attempts intentionally denied.
+    root:x:!root
+    root:x:!123456
+    admin:x:!admin
+    test:x:!test
+    user:x:!password
+    
+    === Fake Web Honeyfiles ===
+    total 28K
+    drwxrwxr-x 2 lss lss 4.0K May 12 05:30 .
+    drwxrwxr-x 5 lss lss 4.0K May 12 05:32 ..
+    -rw-rw-r-- 1 lss lss  233 May 12 05:27 backup_config.ini
+    -rw-rw-r-- 1 lss lss  160 May 12 05:30 database_passwords.txt
+    -rw-rw-r-- 1 lss lss  172 May 12 05:26 secrets.txt
+    -rw-rw-r-- 1 lss lss  268 May 12 05:30 ssh_keys_backup.txt
+    -rw-rw-r-- 1 lss lss  192 May 12 05:29 vpn_users.csv
+    
+    === Cowrie Honeyfs Key Files ===
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/admin/secrets.txt
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/admin/backup_config.ini
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/admin/vpn_users.csv
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/admin/ssh_keys_backup.txt
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/admin/database_passwords.txt
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/backup/backup_jobs.txt
+    [OK] /opt/deception-lab/cowrie/honeyfs/home/operator/maintenance_notes.txt
+    [OK] /opt/deception-lab/cowrie/honeyfs/etc/edge-gateway/app.conf
+    
+    ```
+
+
+
 

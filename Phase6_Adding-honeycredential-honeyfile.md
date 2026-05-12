@@ -697,9 +697,43 @@ mkdir -p \
             [成功] Cowrie honeycredential 功能已生效
     2. 這代表 Cowrie shell 裡目前看不到我們掛進 honeyfs 的 /home/admin 檔案。但這不影響剛剛的主要成果：honeycredential 登入已成功。你目前已完成第六階段中最重要的一步：讓 Cowrie 使用假帳密。
     ```
-
-
-
-
-
+- 如果登入失敗
+    ```
+    docker compose logs --tail=120 cowrie
+    ```
+    ```
+    然後看有沒有這句：
+    Could not read etc/userdb.txt
+    如果沒有這句，但登入還是失敗，可能是 userdb.txt 格式或 Cowrie 認證規則需要調整。先把 log 貼給我，我再幫你修。
+    ```
+- 同時測試 Fake Web honeycredential
+    - 執行：
+        ```
+        curl -s -X POST http://127.0.0.1:8080/login \
+          -d "username=backup" \
+          -d "password=Backup2026!" \
+          -o /tmp/fakeweb-login-test.html
+        ```
+    - 確認：
+        ```
+        grep -E "Dashboard|Authentication accepted" /tmp/fakeweb-login-test.html
+        
+        再檢查 Web auth log：
+        tail -n 10 /opt/deception-lab/data/logs/web/web_auth.jsonl
+        
+        你應該看到："honeycredential_used": true
+        
+        lss@lss:/opt/deception-lab $ curl -s -X POST http://127.0.0.1:8080/login \
+          -d "username=backup" \
+          -d "password=Backup2026!" \
+          -o /tmp/fakeweb-login-test.html
+        lss@lss:/opt/deception-lab $ grep -E "Dashboard|Authentication accepted" /tmp/fakeweb-login-test.html
+          <title>Dashboard - Internal Device Management Console</title>
+            <h1>Device Management Dashboard</h1>
+            <div class="warning">Authentication accepted. Some modules are temporarily unavailable.</div>
+        lss@lss:/opt/deception-lab $ tail -n 10 /opt/deception-lab/data/logs/web/web_auth.jsonl
+        {"timestamp": "2026-05-11T21:46:56.695098+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "admin", "password_sha256": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", "password_length": 6, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
+        {"timestamp": "2026-05-11T22:18:07.651474+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "backup", "password_sha256": "0ecba7213823d57d8b9c6510186aa9ba9e401b2f4508e792f8f3ca4aec6394e1", "password_length": 12, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
+        {"timestamp": "2026-05-12T18:36:26.543366+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+        ```
 

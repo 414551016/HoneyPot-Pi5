@@ -526,16 +526,177 @@ mkdir -p \
     
     ```
 
+### Step 6.11：檢查 Docker Compose 設定
+- 執行：
+    ```
+    cd /opt/deception-lab
+    docker compose config
+    ```
+    ```
+    lss@lss:/opt/deception-lab $ docker compose config
+    name: deception-lab
+    services:
+      cowrie:
+        container_name: deception-cowrie
+        environment:
+          TZ: Asia/Taipei
+        image: cowrie/cowrie:latest
+        networks:
+          deception_net: null
+        ports:
+          - mode: ingress
+            target: 2222
+            published: "2222"
+            protocol: tcp
+        restart: unless-stopped
+        security_opt:
+          - no-new-privileges:true
+        volumes:
+          - type: bind
+            source: /opt/deception-lab/cowrie/honeyfs
+            target: /cowrie/cowrie-git/src/cowrie/data/honeyfs
+            read_only: true
+            bind: {}
+          - type: bind
+            source: /opt/deception-lab/cowrie/etc/userdb.txt
+            target: /cowrie/cowrie-git/etc/userdb.txt
+            read_only: true
+            bind: {}
+      fake-web:
+        build:
+          context: /opt/deception-lab/fake-web
+          dockerfile: Dockerfile
+        container_name: deception-fake-web
+        depends_on:
+          cowrie:
+            condition: service_started
+            required: true
+        environment:
+          HONEYFILE_DIR: /app/honeyfiles
+          TZ: Asia/Taipei
+          WEB_LOG_DIR: /app/logs
+        networks:
+          deception_net: null
+        ports:
+          - mode: ingress
+            target: 8080
+            published: "8080"
+            protocol: tcp
+        restart: unless-stopped
+        security_opt:
+          - no-new-privileges:true
+        volumes:
+          - type: bind
+            source: /opt/deception-lab/data/logs/web
+            target: /app/logs
+            bind: {}
+          - type: bind
+            source: /opt/deception-lab/fake-web/honeyfiles
+            target: /app/honeyfiles
+            read_only: true
+            bind: {}
+    networks:
+      deception_net:
+        name: deception-lab_deception_net
+        driver: bridge
+    ```
+    如果沒有錯誤，就繼續。
 
+### Step 6.12：重新啟動平台
+- 執行：
+    ```
+    docker compose down
+    docker compose up -d
+    ```
+- 確認：
+    ```
+    docker compose ps
+    ```
+    ```
+    # 你應該看到：
+    deception-cowrie     Up
+    deception-fake-web   Up
+    
+    lss@lss:/opt/deception-lab $ docker compose down
+    [+] down 3/3
+     ✔ Container deception-fake-web        Removed                                                                                        0.5s
+     ✔ Container deception-cowrie          Removed                                                                                        0.5s
+     ✔ Network deception-lab_deception_net Removed                                                                                        0.2s
+    lss@lss:/opt/deception-lab $ docker compose up -d
+    [+] up 3/3
+     ✔ Network deception-lab_deception_net Created                                                                                        0.0s
+     ✔ Container deception-cowrie          Started                                                                                        0.7s
+     ✔ Container deception-fake-web        Started                                                                                        0.7s
+    lss@lss:/opt/deception-lab $ docker compose ps
+    NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS          PORTS
+    deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     14 seconds ago   Up 13 seconds   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+    deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   14 seconds ago   Up 13 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+    ```
+- 測試 Cowrie 是否讀到 userdb.txt
+    ```
+    # 先清除舊的 SSH key 紀錄：
+    ssh-keygen -f '/home/lss/.ssh/known_hosts' -R '[127.0.0.1]:2222'
+    
+    # 然後測試：
+    ssh -p 2222 backup@127.0.0.1
+    
+    # 密碼輸入：Backup2026!
+    如果成功，你會進入 Cowrie 假 shell。
+    
+    # 進入後請輸入：
+    whoami
+    pwd
+    ls
+    ls /home/admin
+    cat /home/admin/secrets.txt
+    exit
+    ```
+    ```
+    lss@lss:/opt/deception-lab $ ssh-keygen -f '/home/lss/.ssh/known_hosts' -R '[127.0.0.1]:2222'
+    # Host [127.0.0.1]:2222 found: line 1
+    /home/lss/.ssh/known_hosts updated.
+    Original contents retained as /home/lss/.ssh/known_hosts.old
+    lss@lss:/opt/deception-lab $ ssh -p 2222 backup@127.0.0.1
+    The authenticity of host '[127.0.0.1]:2222 ([127.0.0.1]:2222)' can't be established.
+    ED25519 key fingerprint is SHA256:Gx/iT67Oyb1w3bqEXlZzeWi0jpTa4wnbH/Wb2Iuw0QE.
+    This key is not known by any other names.
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    Warning: Permanently added '[127.0.0.1]:2222' (ED25519) to the list of known hosts.
+    backup@127.0.0.1's password:
+    
+    The programs included with the Debian GNU/Linux system are free software;
+    the exact distribution terms for each program are described in the
+    individual files in /usr/share/doc/*/copyright.
+    
+    Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+    permitted by applicable law.
+    backup@svr04:~$ whoami
+    backup
+    backup@svr04:~$ pwd
+    /var/backups
+    backup@svr04:~$ is
+    -bash: is: command not found
+    backup@svr04:~$ ls
+    backup@svr04:~$ ls /home/admin
+    ls: cannot access /home/admin: No such file or directory
+    backup@svr04:~$ ls /home/admin
+    ls: cannot access /home/admin: No such file or directory
+    backup@svr04:~$ cat /home/admin/secrets.txt
+    cat: /home/admin/secrets.txt: No such file or directory
+    backup@svr04:~$ exit
+    Connection to 127.0.0.1 closed.
 
-
-
-
-
-
-
-
-
+    # 執行結果確認：
+    1. 確認：Cowrie honeycredential 登入測試成功。
+        你已經成功用這組假帳密登入 Cowrie：backup / Backup2026!
+        關鍵成功訊號是你進入了假的 shell：backup@svr04:~$
+        這代表：
+            [成功] Cowrie 已讀到 userdb.txt
+            [成功] backup / Backup2026! 已被接受
+            [成功] 你進入了 Cowrie 假 SSH shell
+            [成功] Cowrie honeycredential 功能已生效
+    2. 這代表 Cowrie shell 裡目前看不到我們掛進 honeyfs 的 /home/admin 檔案。但這不影響剛剛的主要成果：honeycredential 登入已成功。你目前已完成第六階段中最重要的一步：讓 Cowrie 使用假帳密。
+    ```
 
 
 

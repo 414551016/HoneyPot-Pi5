@@ -14,3 +14,18 @@
 8. 將事件對應到 MITRE ATT&CK 與 MITRE Engage
 9. 產生事件時間線與 Markdown / JSON 報告
 10. 注意實驗安全隔離，不影響真實內網
+
+## 完成順序
+- 第一階段：系統架構設計
+- 第二階段：Raspberry Pi 5 環境準備
+- 第三階段：Docker Compose 專案目錄建立
+- 第四階段：部署 Cowrie SSH honeypot
+- 第五階段：建立 Fake Web Admin Panel
+- 第六階段：加入 honeycredential / honeyfile
+- 第七階段：集中式 log 收集
+- 第八階段：Python event parser 與 detection rules
+- 第九階段：MITRE ATT&CK / Engage mapping
+- 第十階段：事件時間線與報告產生
+- 第十一階段：測試攻擊情境
+- 第十二階段：安全加固與後續擴充
+

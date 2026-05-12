@@ -192,13 +192,267 @@ pwd
   EOF
   ```
 
+### Step 6.3：建立 Cowrie 使用者資料夾
+- 在前章己完成有：
+```
+/opt/deception-lab/cowrie/honeyfs/home/admin
+/opt/deception-lab/cowrie/honeyfs/home/root
+```
+- 執行：現在再補幾個假使用者家目錄。
+```
+mkdir -p \
+  /opt/deception-lab/cowrie/etc \
+  /opt/deception-lab/cowrie/honeyfs/home/backup \
+  /opt/deception-lab/cowrie/honeyfs/home/iotadmin \
+  /opt/deception-lab/cowrie/honeyfs/home/operator \
+  /opt/deception-lab/cowrie/honeyfs/var/backups \
+  /opt/deception-lab/cowrie/honeyfs/opt/edge-gateway/config
+```
 
+### Step 6.4：建立 Cowrie userdb.txt
+- 執行：
+    ```
+    cat > /opt/deception-lab/cowrie/etc/userdb.txt <<'EOF'
+    # Cowrie fake SSH credential database
+    # Format:
+    # username:x:password
+    #
+    # These are deception-only credentials.
+    # Do not use real credentials here.
+    
+    admin:x:Admin@12345
+    backup:x:Backup2026!
+    iotadmin:x:iot_admin_2026
+    operator:x:P@ssw0rd!
+    
+    # Common brute-force attempts intentionally denied.
+    root:x:!root
+    root:x:!123456
+    admin:x:!admin
+    test:x:!test
+    user:x:!password
+    EOF
+    ```
+- 說明
+    ```
+    admin / Admin@12345       允許登入 Cowrie 假 shell
+    backup / Backup2026!      允許登入 Cowrie 假 shell
+    iotadmin / iot_admin_2026 允許登入 Cowrie 假 shell
+    operator / P@ssw0rd!      允許登入 Cowrie 假 shell
+    root / root               拒絕
+    root / 123456             拒絕
+    ```
 
+### Step 6.5：把 honeyfile 複製到 Cowrie honeyfs
+- 執行：
+    ```
+    cp /opt/deception-lab/fake-web/honeyfiles/secrets.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/secrets.txt
+    
+    cp /opt/deception-lab/fake-web/honeyfiles/backup_config.ini \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/backup_config.ini
+    
+    cp /opt/deception-lab/fake-web/honeyfiles/vpn_users.csv \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/vpn_users.csv
+    
+    cp /opt/deception-lab/fake-web/honeyfiles/ssh_keys_backup.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/ssh_keys_backup.txt
+    
+    cp /opt/deception-lab/fake-web/honeyfiles/database_passwords.txt \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/database_passwords.txt
+    ```
+- 再建立一些不同目錄的誘餌檔：
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/home/backup/backup_jobs.txt <<'EOF'
+    Backup Jobs
+    
+    daily-config-backup:
+      target=/opt/edge-gateway/config
+      account=backup
+      password=Backup2026!
+    
+    weekly-db-export:
+      target=192.0.2.30
+      account=dbadmin
+      password=ChangeMe_2026!
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/home/operator/maintenance_notes.txt <<'EOF'
+    Maintenance Notes
+    
+    Temporary operator account:
+    username=operator
+    password=P@ssw0rd!
+    
+    Check gateway status:
+    curl http://127.0.0.1:8080/api/status
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/var/backups/device_inventory.txt <<'EOF'
+    Device Inventory
+    
+    edge-gateway-01,192.0.2.10,linux,active
+    backup-server-01,192.0.2.20,linux,active
+    db-main-01,192.0.2.30,linux,maintenance
+    iot-controller-01,192.0.2.40,linux,active
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/opt/edge-gateway/config/local.conf <<'EOF'
+    # Edge Gateway Local Configuration
+    
+    device_id=edge-gateway-01
+    mgmt_user=admin
+    mgmt_password=Admin@12345
+    backup_user=backup
+    backup_password=Backup2026!
+    api_token=fake-local-token-2026
+    EOF
+    ```
 
+### Step 6.6：更新 Cowrie fake passwd 與 group
+你之前已經建立過 /etc/passwd 與 /etc/group。現在重新覆蓋成比較完整的版本。
+- 執行：
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/etc/passwd <<'EOF'
+    root:x:0:0:root:/root:/bin/bash
+    admin:x:1000:1000:admin:/home/admin:/bin/bash
+    backup:x:1001:1001:backup:/home/backup:/bin/bash
+    iotadmin:x:1002:1002:iotadmin:/home/iotadmin:/bin/bash
+    operator:x:1003:1003:operator:/home/operator:/bin/bash
+    www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+    mysql:x:110:115:MySQL Server:/nonexistent:/bin/false
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/etc/group <<'EOF'
+    root:x:0:
+    admin:x:1000:
+    backup:x:1001:
+    iotadmin:x:1002:
+    operator:x:1003:
+    sudo:x:27:admin,operator
+    www-data:x:33:
+    mysql:x:115:
+    users:x:100:
+    EOF
+    ```
 
+### Step 6.7：建立 Cowrie 內常見敏感假路徑
+- 執行：
+    ```
+    mkdir -p \
+      /opt/deception-lab/cowrie/honeyfs/etc/edge-gateway \
+      /opt/deception-lab/cowrie/honeyfs/var/www/html \
+      /opt/deception-lab/cowrie/honeyfs/root/.ssh \
+      /opt/deception-lab/cowrie/honeyfs/home/admin/.ssh
+    ```
+- 建立假設定：
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/etc/edge-gateway/app.conf <<'EOF'
+    [web-admin]
+    url=http://192.0.2.10:8080
+    username=admin
+    password=Admin@12345
+    
+    [backup]
+    server=192.0.2.20
+    username=backup
+    password=Backup2026!
+    EOF
+    ```
+- 建立假 SSH key：
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/home/admin/.ssh/id_rsa <<'EOF'
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    fake-fake-fake-fake-fake-fake-fake-fake
+    this-is-not-a-real-private-key
+    fake-fake-fake-fake-fake-fake-fake-fake
+    -----END OPENSSH PRIVATE KEY-----
+    EOF
+    ```
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/root/.ssh/authorized_keys <<'EOF'
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeFakeFakeFakeFakeFakeFakeFakeFakeFake admin@edge-gateway
+    EOF
+    ```
+- 建立假 Web 設定備份：
+    ```
+    cat > /opt/deception-lab/cowrie/honeyfs/var/www/html/config_backup.txt <<'EOF'
+    Fake Web Admin Backup
+    
+    username=backup
+    password=Backup2026!
+    login_url=http://192.0.2.10:8080/login
+    EOF
+```
 
+### Step 6.8：檢查 Cowrie honeyfs 結構
+- 執行：
+    ```
+    tree -L 4 /opt/deception-lab/cowrie/honeyfs | head -n 120
+    ```
+- 執行結果：你應該會看到類似：
+    ```
+    lss@lss:/opt/deception-lab $ tree -L 4 /opt/deception-lab/cowrie/honeyfs | head -n 120
+    /opt/deception-lab/cowrie/honeyfs
+    ├── etc
+    │   ├── edge-gateway
+    │   │   └── app.conf
+    │   ├── group
+    │   ├── issue
+    │   └── passwd
+    ├── home
+    │   ├── admin
+    │   │   ├── backup_config.ini
+    │   │   ├── database_passwords.txt
+    │   │   ├── notes.txt
+    │   │   ├── secrets.txt
+    │   │   ├── ssh_keys_backup.txt
+    │   │   └── vpn_users.csv
+    │   ├── backup
+    │   │   └── backup_jobs.txt
+    │   ├── iotadmin
+    │   ├── operator
+    │   │   └── maintenance_notes.txt
+    │   └── root
+    ├── opt
+    │   └── edge-gateway
+    │       └── config
+    │           └── local.conf
+    ├── root
+    ├── tmp
+    └── var
+        ├── backups
+        │   └── device_inventory.txt
+        ├── tmp
+        └── www
+            └── html
+                └── config_backup.txt
+    
+    19 directories, 15 files
+    
+    ```
 
-
+### Step 6.9：確認 Fake Web honeyfiles
+- 執行：
+    ```
+    ls -lah /opt/deception-lab/fake-web/honeyfiles
+    ```
+- 執行結果：你應該看到：
+    ```
+    lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/fake-web/honeyfiles
+    total 28K
+    drwxrwxr-x 2 lss lss 4.0K May 12 05:30 .
+    drwxrwxr-x 5 lss lss 4.0K May 12 05:32 ..
+    -rw-rw-r-- 1 lss lss  233 May 12 05:27 backup_config.ini
+    -rw-rw-r-- 1 lss lss  160 May 12 05:30 database_passwords.txt
+    -rw-rw-r-- 1 lss lss  172 May 12 05:26 secrets.txt
+    -rw-rw-r-- 1 lss lss  268 May 12 05:30 ssh_keys_backup.txt
+    -rw-rw-r-- 1 lss lss  192 May 12 05:29 vpn_users.csv
+    ```
 
 
 

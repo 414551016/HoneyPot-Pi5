@@ -387,7 +387,7 @@ mkdir -p \
     password=Backup2026!
     login_url=http://192.0.2.10:8080/login
     EOF
-```
+    ```
 
 ### Step 6.8：檢查 Cowrie honeyfs 結構
 - 執行：
@@ -454,13 +454,69 @@ mkdir -p \
     -rw-rw-r-- 1 lss lss  192 May 12 05:29 vpn_users.csv
     ```
 
-
-
-
-
-
-
-
+### Step 6.10：更新 docker-compose.yml，掛載 Cowrie userdb.txt
+現在要讓 Cowrie 使用我們建立的 userdb.txt。
+- 先備份目前 compose：
+    ```
+    cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase5.yml
+    ```
+    - 用 Python 自動修改，比手動安全：
+    ```
+    python3 - <<'PY'
+    from pathlib import Path
+    
+    path = Path("/opt/deception-lab/docker-compose.yml")
+    text = path.read_text()
+    
+    old = """    volumes:
+          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+    """
+    
+    new = """    volumes:
+          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+          - ./cowrie/etc/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
+    """
+    
+    if old not in text:
+        raise SystemExit("Expected Cowrie volumes block not found. Please show docker-compose.yml.")
+    path.write_text(text.replace(old, new))
+    PY
+    ```
+- 執行確認：
+    ```
+    grep -A6 -n "cowrie:" /opt/deception-lab/docker-compose.yml
+    ```
+    ```
+    lss@lss:/opt/deception-lab $ python3 - <<'PY'
+    from pathlib import Path
+    
+    path = Path("/opt/deception-lab/docker-compose.yml")
+    text = path.read_text()
+    
+    old = """    volumes:
+          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+    """
+    
+    new = """    volumes:
+          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+          - ./cowrie/etc/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
+    """
+    
+    if old not in text:
+        raise SystemExit("Expected Cowrie volumes block not found. Please show docker-compose.yml.")
+    path.write_text(text.replace(old, new))
+    PY
+    lss@lss:/opt/deception-lab $ grep -A6 -n "cowrie:" /opt/deception-lab/docker-compose.yml
+    2:  cowrie:
+    3:    image: cowrie/cowrie:latest
+    4-    container_name: deception-cowrie
+    5-    restart: unless-stopped
+    6-    ports:
+    7-      - "${HOST_SSH_HONEYPOT_PORT}:2222"
+    8-    environment:
+    9-      - TZ=${TZ}
+    
+    ```
 
 
 

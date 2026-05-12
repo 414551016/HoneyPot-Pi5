@@ -870,6 +870,48 @@ mkdir -p \
     
     ```
 
+## 第六階段完成狀態
+```
+# 目前你的 deception assets 已整理成：
+/opt/deception-lab/deception_assets.yml
+/opt/deception-lab/cowrie/etc/userdb.txt
+/opt/deception-lab/fake-web/honeyfiles/
+/opt/deception-lab/cowrie/honeyfs/
 
+# 目前可用誘餌帳密：
+admin / Admin@12345
+backup / Backup2026!
+iotadmin / iot_admin_2026
+operator / P@ssw0rd!
 
+# 目前可用誘餌檔案：
+secrets.txt
+backup_config.ini
+vpn_users.csv
+ssh_keys_backup.txt
+database_passwords.txt
+backup_jobs.txt
+maintenance_notes.txt
+app.conf
+
+# 目前平台已具備的功能
+[完成] Cowrie SSH honeypot
+[完成] Fake Web Admin Panel
+[完成] honeycredential
+[完成] honeyfile
+[完成] SSH 登入行為記錄
+[完成] SSH 指令行為記錄
+[完成] Web 登入行為記錄
+[完成] Web honeyfile 存取記錄
+
+#下一階段是：
+第七階段：集中式 log 收集，第七階段會把目前分散的 log 整理成統一格式與固定收集流程，包含：
+Cowrie Docker log
+Fake Web access log
+Fake Web auth log
+集中到 /opt/deception-lab/data/collected/
+建立 collect_logs.sh
+建立 normalized source manifest
+為第八階段 Python event parser 做準備
+```
 

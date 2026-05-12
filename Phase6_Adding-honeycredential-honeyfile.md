@@ -484,29 +484,9 @@ mkdir -p \
     ```
 - 執行確認：
     ```
-    grep -A6 -n "cowrie:" /opt/deception-lab/docker-compose.yml
-    ```
-    ```
-    lss@lss:/opt/deception-lab $ python3 - <<'PY'
-    from pathlib import Path
-    
-    path = Path("/opt/deception-lab/docker-compose.yml")
-    text = path.read_text()
-    
-    old = """    volumes:
-          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
-    """
-    
-    new = """    volumes:
-          - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
-          - ./cowrie/etc/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
-    """
-    
-    if old not in text:
-        raise SystemExit("Expected Cowrie volumes block not found. Please show docker-compose.yml.")
-    path.write_text(text.replace(old, new))
-    PY
-    lss@lss:/opt/deception-lab $ grep -A6 -n "cowrie:" /opt/deception-lab/docker-compose.yml
+    grep -A18 -n "cowrie:" /opt/deception-lab/docker-compose.yml
+    執行結果：
+    lss@lss:/opt/deception-lab $ grep -A18 -n "cowrie:" /opt/deception-lab/docker-compose.yml
     2:  cowrie:
     3:    image: cowrie/cowrie:latest
     4-    container_name: deception-cowrie
@@ -515,6 +495,34 @@ mkdir -p \
     7-      - "${HOST_SSH_HONEYPOT_PORT}:2222"
     8-    environment:
     9-      - TZ=${TZ}
+    10-    volumes:
+    11-      - ./cowrie/honeyfs:/cowrie/cowrie-git/src/cowrie/data/honeyfs:ro
+    12-      - ./cowrie/etc/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
+    13-    networks:
+    14-      - deception_net
+    15-    security_opt:
+    16-      - no-new-privileges:true
+    17-
+    18-  fake-web:
+    19-    build:
+    20-      context: ./fake-web
+    21-      dockerfile: Dockerfile
+
+    grep -n "userdb" /opt/deception-lab/docker-compose.yml
+    執行結果：
+    lss@lss:/opt/deception-lab $ grep -n "userdb" /opt/deception-lab/docker-compose.yml
+    12:      - ./cowrie/etc/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
+    
+    docker compose config | grep -A5 -n "userdb"
+    執行結果：
+    lss@lss:/opt/deception-lab $ docker compose config | grep -A5 -n "userdb"
+    25:        source: /opt/deception-lab/cowrie/etc/userdb.txt
+    26:        target: /cowrie/cowrie-git/etc/userdb.txt
+    27-        read_only: true
+    28-        bind: {}
+    29-  fake-web:
+    30-    build:
+    31-      context: /opt/deception-lab/fake-web
     
     ```
 

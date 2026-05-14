@@ -696,7 +696,7 @@ Collected files:
   lines: 26
 ```
 
-## Step 7.15：建立第七階段完成紀錄
+### Step 7.15：建立第七階段完成紀錄
 ```
 cat > /opt/deception-lab/PHASE7_READY.md <<'EOF'
 # Phase 7 Ready
@@ -736,10 +736,73 @@ Phase 8 - Python event parser and detection rules.
 EOF
 ```
 
+## 第七階段完成檢查
+執行以下指令，把結果貼給我確認：
+```
+/opt/deception-lab/scripts/collect_logs.sh
+ls -lah /opt/deception-lab/data/collected
+cat /opt/deception-lab/data/collected/collection_summary.txt
+/opt/deception-lab/scripts/show_collected_logs.sh
+/opt/deception-lab/scripts/status_lab.sh
+```
+- 第七階段完成後的狀態
+```
+Cowrie Docker logs
+        ↓
+collect_logs.sh
+        ↓
+/opt/deception-lab/data/collected/cowrie-docker.log
 
+Fake Web access log
+        ↓
+collect_logs.sh
+        ↓
+/opt/deception-lab/data/collected/web_access.jsonl
 
+Fake Web auth log
+        ↓
+collect_logs.sh
+        ↓
+/opt/deception-lab/data/collected/web_auth.jsonl
+```
+```
+確認：第七階段已成功完成。
 
+你的結果已經符合第七階段目標：
 
+項目	結果	狀態
+collect_logs.sh	成功執行	✅
+data/collected	已建立	✅
+cowrie-docker.log	已收集，63 行	✅
+web_access.jsonl	已收集，19 行	✅
+web_auth.jsonl	已收集，4 行	✅
+source_manifest.json	已建立，來源正確	✅
+collection_summary.txt	已建立	✅
+show_collected_logs.sh	成功顯示摘要	✅
+status_lab.sh	成功顯示服務、port、log 狀態	✅
+Cowrie	Up 2 days	✅
+Fake Web	Up 2 days	✅
+Port 2222	LISTEN	✅
+Port 8080	LISTEN	✅
+磁碟空間	50G 可用	✅
+
+你輸出中已經看到 Cowrie 的關鍵事件，例如 backup / Backup2026! 登入成功，以及 whoami、pwd、ls、cat /home/admin/secrets.txt 等指令紀錄；Fake Web 也有 honeycredential_used: true 與 web_honeyfile_access 事件。這代表集中式 log 收集已經能涵蓋 SSH honeypot 與 Web deception 兩側資料。
+```
+```
+# 目前你的平台已經具備：
+[完成] Cowrie SSH honeypot
+[完成] Fake Web Admin Panel
+[完成] honeycredential
+[完成] honeyfile
+[完成] Web log
+[完成] Cowrie Docker log
+[完成] 集中式 log 收集
+[完成] collection summary
+[完成] source manifest
+[完成] collected archive
+```
+
+也就是說，第八階段 parser 不用再到處找 log，只要讀：/opt/deception-lab/data/collected/
 
 
 

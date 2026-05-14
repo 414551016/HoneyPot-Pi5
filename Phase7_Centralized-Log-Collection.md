@@ -496,9 +496,247 @@ cd /opt/deception-lab
   {"timestamp": "2026-05-11T22:18:07.650530+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "192.168.1.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "is_scanner_probe": false, "tags": ["web", "request"]}
   {"timestamp": "2026-05-11T22:18:07.668441+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "192.168.1.1", "method": "GET", "path": "/static/style.css", "query_string": "", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "is_scanner_probe": false, "tags": ["web", "request"]}
   {"timestamp": "2026-05-12T18:36:26.542718+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
-  {"timestamp": "2026-05-12T18:41:52.678577+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
-  
+  {"timestamp": "2026-05-12T18:41:52.678577+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}  
   ```
+
+### Step 7.12：建立簡易 log rotation 腳本
+honeypot 會一直寫 log，所以要避免 SD 卡被塞滿。
+```
+這個腳本會：
+1. 保留 archive 最近 14 天
+2. 顯示 data 目錄用量
+3. 不會刪除目前 collected 目錄
+```
+- 執行：
+  ```
+  cat > /opt/deception-lab/scripts/cleanup_old_logs.sh <<'EOF'
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  ARCHIVE_DIR="/opt/deception-lab/data/archive"
+  
+  echo "=== Disk usage before cleanup ==="
+  df -h /
+  echo
+  du -sh /opt/deception-lab/data || true
+  
+  echo
+  echo "=== Removing archive directories older than 14 days ==="
+  if [ -d "$ARCHIVE_DIR" ]; then
+    find "$ARCHIVE_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +14 -print -exec rm -rf {} \;
+  else
+    echo "Archive directory does not exist."
+  fi
+  
+  echo
+  echo "=== Disk usage after cleanup ==="
+  df -h /
+  echo
+  du -sh /opt/deception-lab/data || true
+  EOF
+  ```
+- 設定可執行：
+  ```
+  chmod +x /opt/deception-lab/scripts/cleanup_old_logs.sh
+  ```
+- 執行測試：
+  ```
+  /opt/deception-lab/scripts/cleanup_old_logs.sh
+  ```
+- 執行結果：
+  ```
+  lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/cleanup_old_logs.sh
+  === Disk usage before cleanup ===
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/mmcblk0p2   58G  5.2G   50G  10% /
+  
+  120K    /opt/deception-lab/data
+  
+  === Removing archive directories older than 14 days ===
+  
+  === Disk usage after cleanup ===
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/mmcblk0p2   58G  5.2G   50G  10% /
+  
+  120K    /opt/deception-lab/data
+  ```
+
+### Step 7.13：建立集中 log 目錄說明檔
+- 執行：
+```
+cat > /opt/deception-lab/data/collected/README.md <<'EOF'
+# Collected Logs
+
+This directory contains centralized logs collected from the deception lab.
+
+Files:
+
+- cowrie-docker.log
+  - Exported Docker logs from the Cowrie SSH honeypot container.
+
+- web_access.jsonl
+  - JSONL access events from the Fake Web Admin Panel.
+
+- web_auth.jsonl
+  - JSONL login/authentication events from the Fake Web Admin Panel.
+
+- source_manifest.json
+  - Metadata describing log sources and collection time.
+
+- collection_summary.txt
+  - Human-readable summary of collected log files.
+
+The Python event parser in Phase 8 will read logs from this directory.
+EOF
+```
+
+### Step 7.14：更新 status 腳本，加入 collected 目錄狀態
+- 現在更新：
+```
+/opt/deception-lab/scripts/status_lab.sh
+```
+- 執行：
+```
+cat > /opt/deception-lab/scripts/status_lab.sh <<'EOF'
+#!/usr/bin/env bash
+set -e
+
+cd /opt/deception-lab
+
+echo "=== Docker Compose Services ==="
+docker compose ps
+
+echo
+echo "=== Docker Networks ==="
+docker network ls | grep deception || true
+
+echo
+echo "=== Listening Ports ==="
+sudo ss -tulpn | grep -E ':22|:2222|:8080' || true
+
+echo
+echo "=== Disk Usage ==="
+df -h /
+
+echo
+echo "=== Log Directories ==="
+du -sh /opt/deception-lab/data/logs/* 2>/dev/null || true
+
+echo
+echo "=== Collected Logs ==="
+ls -lah /opt/deception-lab/data/collected 2>/dev/null || true
+
+echo
+echo "=== Latest Collection Summary ==="
+cat /opt/deception-lab/data/collected/collection_summary.txt 2>/dev/null || true
+EOF
+```
+- 設定權限：
+```
+chmod +x /opt/deception-lab/scripts/status_lab.sh
+```
+- 測試：
+```
+/opt/deception-lab/scripts/status_lab.sh
+```
+- 執行結果：
+```
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/status_lab.sh
+=== Docker Compose Services ===
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED      STATUS      PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     2 days ago   Up 2 days   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   2 days ago   Up 2 days   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+=== Docker Networks ===
+e3ff41c4fcca   deception-lab_deception_net   bridge    local
+
+=== Listening Ports ===
+tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=10664,fd=8))
+tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=10581,fd=8))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1136,fd=6))
+tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=10670,fd=8))
+tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=10589,fd=8))
+tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1136,fd=7))
+
+=== Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+=== Log Directories ===
+12K     /opt/deception-lab/data/logs/cowrie
+16K     /opt/deception-lab/data/logs/web
+
+=== Collected Logs ===
+total 40K
+drwxrwxr-x 2 lss lss 4.0K May 15 07:18 .
+drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
+-rw-rw-r-- 1 lss lss  371 May 15 06:53 collection_summary.txt
+-rw-rw-r-- 1 lss lss 7.7K May 15 06:53 cowrie-docker.log
+-rw-rw-r-- 1 lss lss  579 May 15 07:18 README.md
+-rw-rw-r-- 1 lss lss  777 May 15 06:53 source_manifest.json
+-rwxrwxr-x 1 lss lss 6.5K May 15 06:53 web_access.jsonl
+-rwxrwxr-x 1 lss lss 1.7K May 15 06:53 web_auth.jsonl
+
+=== Latest Collection Summary ===
+Collection time UTC: 20260514T225346Z
+
+Collected files:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+  size: 8.0K
+  lines: 63
+- /opt/deception-lab/data/collected/web_access.jsonl
+  size: 8.0K
+  lines: 19
+- /opt/deception-lab/data/collected/web_auth.jsonl
+  size: 4.0K
+  lines: 4
+- /opt/deception-lab/data/collected/source_manifest.json
+  size: 4.0K
+  lines: 26
+```
+
+## Step 7.15：建立第七階段完成紀錄
+```
+cat > /opt/deception-lab/PHASE7_READY.md <<'EOF'
+# Phase 7 Ready
+
+Centralized log collection has been implemented.
+
+Completed items:
+
+- data/collected directory created
+- data/archive directory created
+- collect_logs.sh created
+- show_collected_logs.sh created
+- cleanup_old_logs.sh created
+- Cowrie Docker logs collected
+- Fake Web access logs collected
+- Fake Web auth logs collected
+- source_manifest.json created
+- collection_summary.txt created
+- collected logs archived by timestamp
+- status_lab.sh updated
+
+Collected log directory:
+
+/opt/deception-lab/data/collected
+
+Main collected files:
+
+- cowrie-docker.log
+- web_access.jsonl
+- web_auth.jsonl
+- source_manifest.json
+- collection_summary.txt
+
+Next phase:
+
+Phase 8 - Python event parser and detection rules.
+EOF
+```
+
+
 
 
 

@@ -144,6 +144,45 @@ sudo apt install -y python3-venv python3-pip
 ```
 
 ### Step 8.4：建立 parser Python 虛擬環境
+- 執行：
+```
+cd /opt/deception-lab/parser
+python3 -m venv venv
+```
+- 啟用虛擬環境：
+```
+source /opt/deception-lab/parser/venv/bin/activate
+
+# 執行結果：你應該會看到 shell 前面多出：(venv)
+lss@lss:/opt/deception-lab/parser $ source /opt/deception-lab/parser/venv/bin/activate
+(venv) lss@lss:/opt/deception-lab/parser $
+```
+
+### Step 8.5：建立 parser requirements
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2868,13 +2868,63 @@ cat /opt/deception-lab/PHASE8_READY.md
 最後請執行以下指令，把結果貼給我確認：
 ```
 /opt/deception-lab/scripts/run_parser.sh
+# 你現在的 parser 已經可以正常完成以下流程：
+collect_logs.sh
+    ↓
+讀取集中式 log
+    ↓
+parse_events.py
+    ↓
+產生標準化事件 events.jsonl
+    ↓
+產生偵測結果 detections.jsonl
+    ↓
+產生摘要 events_summary.json
 
 ls -lah /opt/deception-lab/data/events
+# 你輸出的重點如下：
+Total events: 34
+Total detections: 11
 
 cat /opt/deception-lab/data/events/events_summary.json | jq
+# 而且偵測規則也成功命中：
+1  SSH_HONEYCREDENTIAL_LOGIN
+1  SSH_HONEYFILE_ACCESS
+5  SSH_RECON_COMMAND
+2  WEB_HONEYCREDENTIAL_USED
+2  WEB_HONEYFILE_ACCESS
 
 grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
+# 這代表你的第八階段 parser 已經能偵測：
+[成功] Cowrie honeycredential 登入
+[成功] Cowrie 偵察指令
+[成功] Cowrie honeyfile 存取嘗試
+[成功] Fake Web honeycredential 使用
+[成功] Fake Web honeyfile 存取
 
 /opt/deception-lab/scripts/show_events.sh
+# 你也已經成功產生三個核心輸出檔案：
+/opt/deception-lab/data/events/events.jsonl
+/opt/deception-lab/data/events/detections.jsonl
+/opt/deception-lab/data/events/events_summary.json
 ```
 
+## 第八階段完成後的狀態
+完成後，你的平台資料流會變成：
+你的 show_events.sh 輸出也清楚顯示了 backup / Backup2026! 成功登入 Cowrie、cat /home/admin/secrets.txt 被判定為 SSH honeyfile access，以及 Fake Web 的 WEB_HONEYCREDENTIAL_USED 偵測結果。
+```
+Cowrie Docker logs
+Fake Web access log
+Fake Web auth log
+        ↓
+collect_logs.sh
+        ↓
+/opt/deception-lab/data/collected/
+        ↓
+run_parser.sh
+        ↓
+/opt/deception-lab/data/events/
+        ├── events.jsonl
+        ├── detections.jsonl
+        └── events_summary.json
+```

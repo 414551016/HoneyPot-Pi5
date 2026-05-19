@@ -2913,15 +2913,28 @@ grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | s
 完成後，你的平台資料流會變成：
 你的 show_events.sh 輸出也清楚顯示了 backup / Backup2026! 成功登入 Cowrie、cat /home/admin/secrets.txt 被判定為 SSH honeyfile access，以及 Fake Web 的 WEB_HONEYCREDENTIAL_USED 偵測結果。
 ```
+# 目前你的平台已經具備：
+[完成] SSH honeypot
+[完成] Fake Web Admin
+[完成] honeycredential
+[完成] honeyfile
+[完成] 集中式 log 收集
+[完成] Python event parser
+[完成] detection rules
+[完成] events.jsonl
+[完成] detections.jsonl
+[完成] events_summary.json
+
+# 目前資料流如下：
 Cowrie Docker logs
 Fake Web access log
 Fake Web auth log
         ↓
-collect_logs.sh
+/opt/deception-lab/scripts/collect_logs.sh
         ↓
 /opt/deception-lab/data/collected/
         ↓
-run_parser.sh
+/opt/deception-lab/scripts/run_parser.sh
         ↓
 /opt/deception-lab/data/events/
         ├── events.jsonl

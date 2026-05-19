@@ -158,12 +158,21 @@ lss@lss:/opt/deception-lab/parser $ source /opt/deception-lab/parser/venv/bin/ac
 (venv) lss@lss:/opt/deception-lab/parser $
 ```
 
-### Step 8.5：建立 parser requirements
-
-
-
-
-
+### Step 8.5：建立 parser requirements 解析器要求
+- 執行：
+```
+cat > /opt/deception-lab/parser/requirements.txt <<'EOF'
+PyYAML==6.0.2
+EOF
+```
+- 安裝套件：
+```
+pip install -r /opt/deception-lab/parser/requirements.txt
+```
+- 安裝完成後可以先離開 venv：
+```
+deactivate
+```
 
 
 

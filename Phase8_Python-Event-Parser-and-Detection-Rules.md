@@ -883,26 +883,1998 @@ drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
 
 ```
 
+### Step 8.10：檢查輸出檔案
+- 執行：
+```
+ls -lah /opt/deception-lab/data/events
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ ls -lah /opt/deception-lab/data/events
+total 36K
+drwxrwxr-x 2 lss lss 4.0K May 20 03:28 .
+drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
+-rw-rw-r-- 1 lss lss 6.9K May 20 03:28 detections.jsonl
+-rw-rw-r-- 1 lss lss  13K May 20 03:28 events.jsonl
+-rw-rw-r-- 1 lss lss  631 May 20 03:28 events_summary.json
+```
 
+### Step 8.11：查看 events summary
+- 執行：
+```
+cat /opt/deception-lab/data/events/events_summary.json | jq
 
+# 執行結果：你應該會看到類似：JSON
+lss@lss:/opt/deception-lab/parser $ cat /opt/deception-lab/data/events/events_summary.json | jq
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "generated_at": "2026-05-19T19:28:50.271764+00:00",
+  "total_detections": 11,
+  "total_events": 34
+}
+```
 
+### Step 8.12：查看標準化事件
+- 查看最後 10 筆事件：
+```
+tail -n 10 /opt/deception-lab/data/events/events.jsonl | jq
 
+# 執行結果：如果 jq 顯示多筆 JSON，代表 events 輸出正常。
+lss@lss:/opt/deception-lab/parser $ tail -n 10 /opt/deception-lab/data/events/events.jsonl | jq
+{
+  "command": "ls",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00"
+}
+{
+  "command": "cat /home/admin/secrets.txt",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00"
+}
+{
+  "command": "exit",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00"
+}
+{
+  "details": {},
+  "event_type": "ssh_logout",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] avatar backup logging out",
+  "severity": "info",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "logout"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:36:26.542718+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:41:52.678577+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+```
+- 如果你想看 Cowrie SSH 指令事件：
+```
+grep '"event_type": "ssh_command"' /opt/deception-lab/data/events/events.jsonl | jq
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ tail -n 10 /opt/deception-lab/data/events/events.jsonl | jq
+{
+  "command": "ls",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00"
+}
+{
+  "command": "cat /home/admin/secrets.txt",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00"
+}
+{
+  "command": "exit",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00"
+}
+{
+  "details": {},
+  "event_type": "ssh_logout",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] avatar backup logging out",
+  "severity": "info",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "logout"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:36:26.542718+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:41:52.678577+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+lss@lss:/opt/deception-lab/parser $ ^C
+lss@lss:/opt/deception-lab/parser $ grep '"event_type": "ssh_command"' /opt/deception-lab/data/events/events.jsonl | jq
+{
+  "command": "whoami",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:07+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: whoami",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:07+00:00"
+}
+{
+  "command": "pwd",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:11+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: pwd",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:11+00:00"
+}
+{
+  "command": "is",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:14+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: is",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:14+00:00"
+}
+{
+  "command": "ls",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00"
+}
+{
+  "command": "cat /home/admin/secrets.txt",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00"
+}
+{
+  "command": "exit",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00"
+}
+```
+- 如果你想看 Web honeycredential 事件：
+```
+grep '"honeycredential_used": true' /opt/deception-lab/data/events/events.jsonl | jq
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ grep '"event_type": "ssh_command"' /opt/deception-lab/data/events/events.jsonl | jq
+{
+  "command": "whoami",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:07+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: whoami",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:07+00:00"
+}
+{
+  "command": "pwd",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:11+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: pwd",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:11+00:00"
+}
+{
+  "command": "is",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:14+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: is",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:14+00:00"
+}
+{
+  "command": "ls",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00"
+}
+{
+  "command": "cat /home/admin/secrets.txt",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00"
+}
+{
+  "command": "exit",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00"
+}
+lss@lss:/opt/deception-lab/parser $ ^C
+lss@lss:/opt/deception-lab/parser $ grep '"honeycredential_used": true' /opt/deception-lab/data/events/events.jsonl | jq
+{
+  "details": {
+    "honeycredential_id": "HC_BACKUP_001"
+  },
+  "event_type": "ssh_login_success",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "raw": "deception-cowrie  | 2026-05-13T02:26:42+0800 [HoneyPotSSHTransport,0,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "login",
+    "login-success",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:26:42+00:00",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+```
 
+### Step 8.13：查看 detections
+- 查看全部 detection：
+```
+cat /opt/deception-lab/data/events/detections.jsonl | jq
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ cat /opt/deception-lab/data/events/detections.jsonl | jq
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": null,
+  "description": "User accessed or downloaded a honeyfile from the fake web panel.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 12,
+  "event_type": "web_honeyfile_access",
+  "filename": "secrets.txt",
+  "path": "/download/secrets.txt",
+  "rule_id": "WEB_HONEYFILE_ACCESS",
+  "rule_name": "Web honeyfile accessed",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "192.168.1.1",
+  "tags": [
+    "download",
+    "honeyfile",
+    "web"
+  ],
+  "timestamp": "2026-05-11T21:57:12.514844+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": null,
+  "description": "User accessed or downloaded a honeyfile from the fake web panel.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 14,
+  "event_type": "web_honeyfile_access",
+  "filename": "vpn_users.csv",
+  "path": "/download/vpn_users.csv",
+  "rule_id": "WEB_HONEYFILE_ACCESS",
+  "rule_name": "Web honeyfile accessed",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "192.168.1.1",
+  "tags": [
+    "download",
+    "honeyfile",
+    "web"
+  ],
+  "timestamp": "2026-05-11T21:57:19.331247+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "Attacker successfully logged into Cowrie using a known honeycredential.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 20,
+  "event_type": "ssh_login_success",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYCREDENTIAL_LOGIN",
+  "rule_name": "SSH honeycredential login succeeded",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "deception",
+    "honeycredential",
+    "login",
+    "login-success",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:26:42+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "whoami",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 21,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:07+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "pwd",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 22,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:11+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 24,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 25,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 26,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": "cat /home/admin/secrets.txt",
+  "description": "Attacker attempted to access a known honeyfile inside Cowrie.",
+  "engage_mapping": {
+    "activity": "Reveal Adversary Intent",
+    "goal": "Elicit"
+  },
+  "event_index": 27,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYFILE_ACCESS",
+  "rule_name": "SSH honeyfile access attempt",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "collection",
+    "command",
+    "honeyfile",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 31,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 33,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "username": "backup"
+}
+```
+- 如果輸出太多，可以看最後 20 筆：
+```
+tail -n 20 /opt/deception-lab/data/events/detections.jsonl | jq
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ tail -n 20 /opt/deception-lab/data/events/detections.jsonl | jq
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": null,
+  "description": "User accessed or downloaded a honeyfile from the fake web panel.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 12,
+  "event_type": "web_honeyfile_access",
+  "filename": "secrets.txt",
+  "path": "/download/secrets.txt",
+  "rule_id": "WEB_HONEYFILE_ACCESS",
+  "rule_name": "Web honeyfile accessed",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "192.168.1.1",
+  "tags": [
+    "download",
+    "honeyfile",
+    "web"
+  ],
+  "timestamp": "2026-05-11T21:57:12.514844+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": null,
+  "description": "User accessed or downloaded a honeyfile from the fake web panel.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 14,
+  "event_type": "web_honeyfile_access",
+  "filename": "vpn_users.csv",
+  "path": "/download/vpn_users.csv",
+  "rule_id": "WEB_HONEYFILE_ACCESS",
+  "rule_name": "Web honeyfile accessed",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "192.168.1.1",
+  "tags": [
+    "download",
+    "honeyfile",
+    "web"
+  ],
+  "timestamp": "2026-05-11T21:57:19.331247+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "Attacker successfully logged into Cowrie using a known honeycredential.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 20,
+  "event_type": "ssh_login_success",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYCREDENTIAL_LOGIN",
+  "rule_name": "SSH honeycredential login succeeded",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "deception",
+    "honeycredential",
+    "login",
+    "login-success",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:26:42+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "whoami",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 21,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:07+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "pwd",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 22,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:11+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 24,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 25,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 26,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": "cat /home/admin/secrets.txt",
+  "description": "Attacker attempted to access a known honeyfile inside Cowrie.",
+  "engage_mapping": {
+    "activity": "Reveal Adversary Intent",
+    "goal": "Elicit"
+  },
+  "event_index": 27,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYFILE_ACCESS",
+  "rule_name": "SSH honeyfile access attempt",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "collection",
+    "command",
+    "honeyfile",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 31,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 33,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "username": "backup"
+}
+```
+- 你應該看到 detection，例如：
+```
+SSH_HONEYCREDENTIAL_LOGIN
+SSH_RECON_COMMAND
+SSH_HONEYFILE_ACCESS
+WEB_HONEYCREDENTIAL_USED
+WEB_HONEYFILE_ACCESS
+```
 
+### Step 8.14：用 grep 快速看偵測種類
+- 執行：
+```
+grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
 
+# 執行結果：你可能會看到類似：
+lss@lss:/opt/deception-lab/parser $ grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
+      1 "rule_id": "SSH_HONEYCREDENTIAL_LOGIN"
+      1 "rule_id": "SSH_HONEYFILE_ACCESS"
+      5 "rule_id": "SSH_RECON_COMMAND"
+      2 "rule_id": "WEB_HONEYCREDENTIAL_USED"
+      2 "rule_id": "WEB_HONEYFILE_ACCESS"
+```
 
+### Step 8.15：建立事件查看腳本
+建立一個快速查看 parser 結果的腳本。
+- 執行：
+```
+cat > /opt/deception-lab/scripts/show_events.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
 
+EVENT_DIR="/opt/deception-lab/data/events"
 
+echo "=== Event Files ==="
+ls -lah "$EVENT_DIR"
 
+echo
+echo "=== Summary ==="
+if [ -f "$EVENT_DIR/events_summary.json" ]; then
+  cat "$EVENT_DIR/events_summary.json" | jq
+else
+  echo "No events_summary.json found."
+fi
 
+echo
+echo "=== Detection Rule Counts ==="
+if [ -f "$EVENT_DIR/detections.jsonl" ]; then
+  grep -o '"rule_id": "[^"]*"' "$EVENT_DIR/detections.jsonl" | sort | uniq -c || true
+else
+  echo "No detections.jsonl found."
+fi
 
+echo
+echo "=== Last 10 Events ==="
+if [ -f "$EVENT_DIR/events.jsonl" ]; then
+  tail -n 10 "$EVENT_DIR/events.jsonl" | jq
+else
+  echo "No events.jsonl found."
+fi
 
+echo
+echo "=== Last 10 Detections ==="
+if [ -f "$EVENT_DIR/detections.jsonl" ]; then
+  tail -n 10 "$EVENT_DIR/detections.jsonl" | jq
+else
+  echo "No detections.jsonl found."
+fi
+EOF
+```
+- 設定可執行：
+```
+chmod +x /opt/deception-lab/scripts/show_events.sh
+```
+- 執行：
+```
+/opt/deception-lab/scripts/show_events.sh
 
+# 執行結果：
+lss@lss:/opt/deception-lab/parser $ /opt/deception-lab/scripts/show_events.sh
+=== Event Files ===
+total 36K
+drwxrwxr-x 2 lss lss 4.0K May 20 03:28 .
+drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
+-rw-rw-r-- 1 lss lss 6.9K May 20 03:28 detections.jsonl
+-rw-rw-r-- 1 lss lss  13K May 20 03:28 events.jsonl
+-rw-rw-r-- 1 lss lss  631 May 20 03:28 events_summary.json
 
+=== Summary ===
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "generated_at": "2026-05-19T19:28:50.271764+00:00",
+  "total_detections": 11,
+  "total_events": 34
+}
 
+=== Detection Rule Counts ===
+      1 "rule_id": "SSH_HONEYCREDENTIAL_LOGIN"
+      1 "rule_id": "SSH_HONEYFILE_ACCESS"
+      5 "rule_id": "SSH_RECON_COMMAND"
+      2 "rule_id": "WEB_HONEYCREDENTIAL_USED"
+      2 "rule_id": "WEB_HONEYFILE_ACCESS"
+
+=== Last 10 Events ===
+{
+  "command": "ls",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00"
+}
+{
+  "command": "ls /home/admin",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00"
+}
+{
+  "command": "cat /home/admin/secrets.txt",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00"
+}
+{
+  "command": "exit",
+  "details": {},
+  "event_type": "ssh_command",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "command"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00"
+}
+{
+  "details": {},
+  "event_type": "ssh_logout",
+  "raw": "deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] avatar backup logging out",
+  "severity": "info",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "ssh",
+    "logout"
+  ],
+  "timestamp": "2026-05-12T18:27:57+00:00",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:36:26.542718+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+{
+  "details": {},
+  "event_type": "web_request",
+  "is_scanner_probe": false,
+  "method": "POST",
+  "path": "/login",
+  "query_string": "",
+  "severity": "info",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "request"
+  ],
+  "timestamp": "2026-05-12T18:41:52.678577+00:00",
+  "user_agent": "curl/8.14.1"
+}
+{
+  "details": {},
+  "event_type": "web_login_attempt",
+  "honeycredential_used": true,
+  "password_length": 11,
+  "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "web",
+    "login",
+    "honeycredential"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "user_agent": "curl/8.14.1",
+  "username": "backup"
+}
+
+=== Last 10 Detections ===
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": null,
+  "description": "User accessed or downloaded a honeyfile from the fake web panel.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 14,
+  "event_type": "web_honeyfile_access",
+  "filename": "vpn_users.csv",
+  "path": "/download/vpn_users.csv",
+  "rule_id": "WEB_HONEYFILE_ACCESS",
+  "rule_name": "Web honeyfile accessed",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "192.168.1.1",
+  "tags": [
+    "download",
+    "honeyfile",
+    "web"
+  ],
+  "timestamp": "2026-05-11T21:57:19.331247+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "Attacker successfully logged into Cowrie using a known honeycredential.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 20,
+  "event_type": "ssh_login_success",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYCREDENTIAL_LOGIN",
+  "rule_name": "SSH honeycredential login succeeded",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "deception",
+    "honeycredential",
+    "login",
+    "login-success",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:26:42+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "whoami",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 21,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:07+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "pwd",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 22,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:11+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 24,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:16+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 25,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:30+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Discovery",
+    "technique": "System Information Discovery",
+    "technique_id": "T1082"
+  },
+  "command": "ls /home/admin",
+  "description": "Attacker executed common discovery or reconnaissance commands.",
+  "engage_mapping": {
+    "activity": "Collect Adversary Behavior",
+    "goal": "Understand"
+  },
+  "event_index": 26,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_RECON_COMMAND",
+  "rule_name": "SSH reconnaissance command",
+  "severity": "medium",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "command",
+    "discovery",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:46+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Collection",
+    "technique": "Data from Local System",
+    "technique_id": "T1005"
+  },
+  "command": "cat /home/admin/secrets.txt",
+  "description": "Attacker attempted to access a known honeyfile inside Cowrie.",
+  "engage_mapping": {
+    "activity": "Reveal Adversary Intent",
+    "goal": "Elicit"
+  },
+  "event_index": 27,
+  "event_type": "ssh_command",
+  "filename": null,
+  "path": null,
+  "rule_id": "SSH_HONEYFILE_ACCESS",
+  "rule_name": "SSH honeyfile access attempt",
+  "severity": "high",
+  "source": "cowrie",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "collection",
+    "command",
+    "honeyfile",
+    "ssh"
+  ],
+  "timestamp": "2026-05-12T18:27:53+00:00",
+  "username": null
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 31,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:36:26.543366+00:00",
+  "username": "backup"
+}
+{
+  "attack_mapping": {
+    "tactic": "Credential Access",
+    "technique": "Unsecured Credentials",
+    "technique_id": "T1552"
+  },
+  "command": null,
+  "description": "User submitted a known honeycredential to the fake web login panel.",
+  "engage_mapping": {
+    "activity": "Credential Collection",
+    "goal": "Elicit"
+  },
+  "event_index": 33,
+  "event_type": "web_login_attempt",
+  "filename": null,
+  "path": null,
+  "rule_id": "WEB_HONEYCREDENTIAL_USED",
+  "rule_name": "Web honeycredential used",
+  "severity": "high",
+  "source": "fake-web",
+  "src_ip": "172.18.0.1",
+  "tags": [
+    "honeycredential",
+    "login",
+    "web"
+  ],
+  "timestamp": "2026-05-12T18:41:52.679019+00:00",
+  "username": "backup"
+}
+```
+
+### Step 8.16：建立 Parser README
+- 執行：
+```
+cat > /opt/deception-lab/parser/README.md <<'EOF'
+# Phase 8 Parser
+
+This parser reads centralized logs from:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+- /opt/deception-lab/data/collected/web_access.jsonl
+- /opt/deception-lab/data/collected/web_auth.jsonl
+
+It outputs normalized events and detections to:
+
+- /opt/deception-lab/data/events/events.jsonl
+- /opt/deception-lab/data/events/detections.jsonl
+- /opt/deception-lab/data/events/events_summary.json
+
+Main scripts:
+
+- /opt/deception-lab/scripts/run_parser.sh
+- /opt/deception-lab/scripts/show_events.sh
+
+Detection rules:
+
+- /opt/deception-lab/parser/rules/detection_rules.yml
+EOF
+```
+
+### Step 8.17：建立第八階段完成紀錄
+如果 parser 成功執行，建立：
+```
+cat > /opt/deception-lab/PHASE8_READY.md <<'EOF'
+# Phase 8 Ready
+
+Python event parser and detection rules have been implemented.
+
+Completed items:
+
+- parser Python virtual environment created
+- PyYAML installed
+- detection_rules.yml created
+- parse_events.py created
+- run_parser.sh created
+- show_events.sh created
+- Cowrie Docker logs parsed
+- Fake Web access logs parsed
+- Fake Web auth logs parsed
+- events.jsonl generated
+- detections.jsonl generated
+- events_summary.json generated
+
+Main input directory:
+
+/opt/deception-lab/data/collected
+
+Main output directory:
+
+/opt/deception-lab/data/events
+
+Output files:
+
+- events.jsonl
+- detections.jsonl
+- events_summary.json
+
+Next phase:
+
+Phase 9 - MITRE ATT&CK / MITRE Engage mapping refinement.
+EOF
+```
+- 確認：
+```
+cat /opt/deception-lab/PHASE8_READY.md
+```
+
+## 第八階段完成檢查
+最後請執行以下指令，把結果貼給我確認：
+```
+/opt/deception-lab/scripts/run_parser.sh
+
+ls -lah /opt/deception-lab/data/events
+
+cat /opt/deception-lab/data/events/events_summary.json | jq
+
+grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
+
+/opt/deception-lab/scripts/show_events.sh
+```
 

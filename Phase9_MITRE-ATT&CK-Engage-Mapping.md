@@ -1935,12 +1935,689 @@ Engage mapping coverage: 100.0%
 ```
 
 ### Step 9.13：建立第九階段完成紀錄
+- 如果以上都成功，建立：
+```
+cat > /opt/deception-lab/PHASE9_READY.md <<'EOF'
+# Phase 9 Ready
 
+MITRE ATT&CK and MITRE Engage mapping have been implemented.
 
+Completed items:
 
+- attack_mapping.yml created
+- engage_mapping.yml created
+- analyze_mapping.py created
+- run_mapping.sh created
+- show_mapping.sh created
+- generate_mapping_markdown.py created
+- mapping_summary.json generated
+- attack_coverage.json generated
+- engage_coverage.json generated
+- mapping_report.md generated
 
+Main mapping rule files:
 
+- /opt/deception-lab/parser/rules/attack_mapping.yml
+- /opt/deception-lab/parser/rules/engage_mapping.yml
 
+Main mapping outputs:
+
+- /opt/deception-lab/data/events/mapping_summary.json
+- /opt/deception-lab/data/events/attack_coverage.json
+- /opt/deception-lab/data/events/engage_coverage.json
+- /opt/deception-lab/reports/mapping_report.md
+
+Next phase:
+
+Phase 10 - Event timeline and Markdown / JSON report generation.
+EOF
+```
+- 確認：
+```
+cat /opt/deception-lab/PHASE9_READY.md
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/PHASE9_READY.md
+# Phase 9 Ready
+
+MITRE ATT&CK and MITRE Engage mapping have been implemented.
+
+Completed items:
+
+- attack_mapping.yml created
+- engage_mapping.yml created
+- analyze_mapping.py created
+- run_mapping.sh created
+- show_mapping.sh created
+- generate_mapping_markdown.py created
+- mapping_summary.json generated
+- attack_coverage.json generated
+- engage_coverage.json generated
+- mapping_report.md generated
+
+Main mapping rule files:
+
+- /opt/deception-lab/parser/rules/attack_mapping.yml
+- /opt/deception-lab/parser/rules/engage_mapping.yml
+
+Main mapping outputs:
+
+- /opt/deception-lab/data/events/mapping_summary.json
+- /opt/deception-lab/data/events/attack_coverage.json
+- /opt/deception-lab/data/events/engage_coverage.json
+- /opt/deception-lab/reports/mapping_report.md
+
+Next phase:
+
+Phase 10 - Event timeline and Markdown / JSON report generation.
+```
+
+## 第九階段完成檢查
+```
+/opt/deception-lab/scripts/run_mapping.sh
+
+/opt/deception-lab/scripts/show_mapping.sh
+
+ls -lah /opt/deception-lab/reports
+
+head -n 80 /opt/deception-lab/reports/mapping_report.md
+
+cat /opt/deception-lab/PHASE9_READY.md
+```
+- 執行結果：
+```
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/run_mapping.sh
+[+] Running parser first to refresh detections...
+[+] Collecting latest logs...
+[+] Collecting logs at UTC time: 20260521T001703Z
+[+] Exporting Cowrie Docker logs...
+[+] Collecting Fake Web access log...
+[+] Collecting Fake Web auth log...
+[+] Creating source manifest...
+[+] Creating collection summary...
+[+] Archiving collected logs...
+
+[+] Collection completed.
+[+] Current collected directory:
+total 44K
+drwxrwxr-x 2 lss lss 4.0K May 15 07:18 .
+drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
+-rw-rw-r-- 1 lss lss  370 May 21 08:17 collection_summary.txt
+-rw-rw-r-- 1 lss lss  12K May 21 08:17 cowrie-docker.log
+-rw-rw-r-- 1 lss lss  579 May 15 07:18 README.md
+-rw-rw-r-- 1 lss lss  777 May 21 08:17 source_manifest.json
+-rwxrwxr-x 1 lss lss 6.5K May 21 08:17 web_access.jsonl
+-rwxrwxr-x 1 lss lss 1.7K May 21 08:17 web_auth.jsonl
+
+[+] Summary:
+Collection time UTC: 20260521T001703Z
+
+Collected files:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+  size: 12K
+  lines: 93
+- /opt/deception-lab/data/collected/web_access.jsonl
+  size: 8.0K
+  lines: 19
+- /opt/deception-lab/data/collected/web_auth.jsonl
+  size: 4.0K
+  lines: 4
+- /opt/deception-lab/data/collected/source_manifest.json
+  size: 4.0K
+  lines: 26
+
+[+] Running event parser...
+[+] Parsing completed.
+[+] Events written to: /opt/deception-lab/data/events/events.jsonl
+[+] Detections written to: /opt/deception-lab/data/events/detections.jsonl
+[+] Summary written to: /opt/deception-lab/data/events/events_summary.json
+
+Total events: 34
+Total detections: 11
+
+[+] Event output files:
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 21 07:53 .
+drwxrwxr-x 8 lss lss 4.0K May 13 03:01 ..
+-rw-rw-r-- 1 lss lss 2.9K May 21 08:13 attack_coverage.json
+-rw-rw-r-- 1 lss lss 6.9K May 21 08:17 detections.jsonl
+-rw-rw-r-- 1 lss lss 2.2K May 21 08:13 engage_coverage.json
+-rw-rw-r-- 1 lss lss  13K May 21 08:17 events.jsonl
+-rw-rw-r-- 1 lss lss  631 May 21 08:17 events_summary.json
+-rw-rw-r-- 1 lss lss 6.1K May 21 08:13 mapping_summary.json
+
+[+] Event summary:
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "generated_at": "2026-05-21T00:17:03.602337+00:00",
+  "total_detections": 11,
+  "total_events": 34
+}
+[+] Running MITRE mapping analyzer...
+[+] Mapping analysis completed.
+[+] Mapping summary: /opt/deception-lab/data/events/mapping_summary.json
+[+] ATT&CK coverage: /opt/deception-lab/data/events/attack_coverage.json
+[+] Engage coverage: /opt/deception-lab/data/events/engage_coverage.json
+
+Defined detection rules: 8
+Total detections: 11
+ATT&CK mapping coverage: 100.0%
+Engage mapping coverage: 100.0%
+
+[+] Generating mapping Markdown report...
+[+] Mapping markdown report written to: /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping output files:
+-rw-rw-r-- 1 lss lss 2.9K May 21 08:17 attack_coverage.json
+-rw-rw-r-- 1 lss lss 2.2K May 21 08:17 engage_coverage.json
+-rw-rw-r-- 1 lss lss 6.1K May 21 08:17 mapping_summary.json
+
+[+] Mapping report:
+-rw-rw-r-- 1 lss lss 2.0K May 21 08:17 /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping summary:
+{
+  "attack_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "defined_detection_rules": 8,
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "engage_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "generated_at": "2026-05-21T00:17:03.679497+00:00",
+  "input_detections": "/opt/deception-lab/data/events/detections.jsonl",
+  "per_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": {
+      "attack": {
+        "rationale": "The attacker used a credential intentionally planted in deception assets. This indicates exposure to unsecured credential material.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 1,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "A planted SSH credential caused the adversary to reveal credential-use behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Attempting to read honeyfiles such as secrets.txt or backup_config.ini indicates interest in local sensitive data.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 1,
+      "engage": {
+        "activity": "Reveal Adversary Intent",
+        "goal": "Elicit",
+        "rationale": "Honeyfile access attempts reveal interest in sensitive files, backup data, credentials, and local configuration.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_LOGIN_FAILED": {
+      "attack": {
+        "rationale": "Failed SSH authentication attempts against the honeypot indicate password guessing or brute-force behavior.\n",
+        "tactic": "Credential Access",
+        "technique": "Brute Force",
+        "technique_id": "T1110"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The SSH honeypot exposes a fake login surface for observing authentication attempts.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_RECON_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as whoami, pwd, ls, uname, ip addr, ifconfig, ps, and netstat indicate post-login discovery activity.\n",
+        "related_techniques": [
+          "T1033 System Owner/User Discovery",
+          "T1016 System Network Configuration Discovery",
+          "T1057 Process Discovery"
+        ],
+        "tactic": "Discovery",
+        "technique": "System Information Discovery",
+        "technique_id": "T1082"
+      },
+      "detections": 5,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Commands entered after login reveal adversary discovery interests and operating style.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_TOOL_TRANSFER_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as wget, curl, ftp, scp, chmod, nc, or bash reverse shell patterns may indicate tool staging or payload transfer.\n",
+        "tactic": "Command and Control",
+        "technique": "Ingress Tool Transfer",
+        "technique_id": "T1105"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Adversary Direction",
+        "goal": "Affect",
+        "rationale": "A decoy shell can influence attacker behavior and redirect tool staging activity into a controlled observation environment.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYCREDENTIAL_USED": {
+      "attack": {
+        "rationale": "Submitting a planted credential to the fake web login panel indicates the adversary discovered and attempted to use unsecured credentials.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 2,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "Planted web credentials elicit credential reuse behavior against the fake admin panel.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Downloading honeyfiles from the fake web panel indicates attempted collection of local or exposed files.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 2,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Honeyfile download behavior helps identify the attacker's collection interests.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_SCANNER_PROBE": {
+      "attack": {
+        "rationale": "Requests to paths such as /.env, /wp-admin, /phpmyadmin, or /admin indicate web probing or scanning behavior.\n",
+        "tactic": "Reconnaissance",
+        "technique": "Active Scanning",
+        "technique_id": "T1595"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The fake web interface exposes probeable paths to observe scanner behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    }
+  },
+  "total_detections": 11,
+  "triggered_detection_rules": [
+    "SSH_HONEYCREDENTIAL_LOGIN",
+    "SSH_HONEYFILE_ACCESS",
+    "SSH_RECON_COMMAND",
+    "WEB_HONEYCREDENTIAL_USED",
+    "WEB_HONEYFILE_ACCESS"
+  ]
+}
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/show_mapping.sh
+=== Mapping Files ===
+-rw-rw-r-- 1 lss lss 2.9K May 21 08:17 attack_coverage.json
+-rw-rw-r-- 1 lss lss 2.2K May 21 08:17 engage_coverage.json
+-rw-rw-r-- 1 lss lss 6.1K May 21 08:17 mapping_summary.json
+
+=== Mapping Summary ===
+{
+  "attack_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "defined_detection_rules": 8,
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "engage_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "generated_at": "2026-05-21T00:17:03.679497+00:00",
+  "input_detections": "/opt/deception-lab/data/events/detections.jsonl",
+  "per_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": {
+      "attack": {
+        "rationale": "The attacker used a credential intentionally planted in deception assets. This indicates exposure to unsecured credential material.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 1,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "A planted SSH credential caused the adversary to reveal credential-use behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Attempting to read honeyfiles such as secrets.txt or backup_config.ini indicates interest in local sensitive data.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 1,
+      "engage": {
+        "activity": "Reveal Adversary Intent",
+        "goal": "Elicit",
+        "rationale": "Honeyfile access attempts reveal interest in sensitive files, backup data, credentials, and local configuration.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_LOGIN_FAILED": {
+      "attack": {
+        "rationale": "Failed SSH authentication attempts against the honeypot indicate password guessing or brute-force behavior.\n",
+        "tactic": "Credential Access",
+        "technique": "Brute Force",
+        "technique_id": "T1110"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The SSH honeypot exposes a fake login surface for observing authentication attempts.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_RECON_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as whoami, pwd, ls, uname, ip addr, ifconfig, ps, and netstat indicate post-login discovery activity.\n",
+        "related_techniques": [
+          "T1033 System Owner/User Discovery",
+          "T1016 System Network Configuration Discovery",
+          "T1057 Process Discovery"
+        ],
+        "tactic": "Discovery",
+        "technique": "System Information Discovery",
+        "technique_id": "T1082"
+      },
+      "detections": 5,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Commands entered after login reveal adversary discovery interests and operating style.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_TOOL_TRANSFER_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as wget, curl, ftp, scp, chmod, nc, or bash reverse shell patterns may indicate tool staging or payload transfer.\n",
+        "tactic": "Command and Control",
+        "technique": "Ingress Tool Transfer",
+        "technique_id": "T1105"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Adversary Direction",
+        "goal": "Affect",
+        "rationale": "A decoy shell can influence attacker behavior and redirect tool staging activity into a controlled observation environment.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYCREDENTIAL_USED": {
+      "attack": {
+        "rationale": "Submitting a planted credential to the fake web login panel indicates the adversary discovered and attempted to use unsecured credentials.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 2,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "Planted web credentials elicit credential reuse behavior against the fake admin panel.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Downloading honeyfiles from the fake web panel indicates attempted collection of local or exposed files.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 2,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Honeyfile download behavior helps identify the attacker's collection interests.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_SCANNER_PROBE": {
+      "attack": {
+        "rationale": "Requests to paths such as /.env, /wp-admin, /phpmyadmin, or /admin indicate web probing or scanning behavior.\n",
+        "tactic": "Reconnaissance",
+        "technique": "Active Scanning",
+        "technique_id": "T1595"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The fake web interface exposes probeable paths to observe scanner behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    }
+  },
+  "total_detections": 11,
+  "triggered_detection_rules": [
+    "SSH_HONEYCREDENTIAL_LOGIN",
+    "SSH_HONEYFILE_ACCESS",
+    "SSH_RECON_COMMAND",
+    "WEB_HONEYCREDENTIAL_USED",
+    "WEB_HONEYFILE_ACCESS"
+  ]
+}
+
+=== ATT&CK Detection Coverage ===
+--- Tactics ---
+{
+  "Collection": 3,
+  "Credential Access": 3,
+  "Discovery": 5
+}
+
+--- Techniques ---
+{
+  "T1005 Data from Local System": 3,
+  "T1082 System Information Discovery": 5,
+  "T1552 Unsecured Credentials": 3
+}
+
+=== Engage Detection Coverage ===
+--- Goals ---
+{
+  "Elicit": 4,
+  "Understand": 7
+}
+
+--- Activities ---
+{
+  "Elicit: Credential Collection": 3,
+  "Elicit: Reveal Adversary Intent": 1,
+  "Understand: Collect Adversary Behavior": 7
+}
+lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/reports
+total 12K
+drwxrwxr-x 2 lss lss 4.0K May 21 08:07 .
+drwxr-xr-x 8 lss lss 4.0K May 21 08:15 ..
+-rw-rw-r-- 1 lss lss 2.0K May 21 08:17 mapping_report.md
+lss@lss:/opt/deception-lab $ head -n 80 /opt/deception-lab/reports/mapping_report.md
+# MITRE Mapping Report
+
+Generated at: 2026-05-21T00:17:03.716150+00:00
+
+## Mapping Coverage
+
+| Framework | Mapped Rules | Total Rules | Coverage |
+| --- | --- | --- | --- |
+| MITRE ATT&CK | 8 | 8 | 100.0% |
+| MITRE Engage | 8 | 8 | 100.0% |
+
+## Detection Counts by Rule
+
+| Rule ID | Count |
+| --- | --- |
+| SSH_HONEYCREDENTIAL_LOGIN | 1 |
+| SSH_HONEYFILE_ACCESS | 1 |
+| SSH_RECON_COMMAND | 5 |
+| WEB_HONEYCREDENTIAL_USED | 2 |
+| WEB_HONEYFILE_ACCESS | 2 |
+
+## ATT&CK Coverage by Tactic
+
+| Tactic | Detection Count |
+| --- | --- |
+| Collection | 3 |
+| Credential Access | 3 |
+| Discovery | 5 |
+
+## ATT&CK Coverage by Technique
+
+| Technique | Detection Count |
+| --- | --- |
+| T1005 Data from Local System | 3 |
+| T1082 System Information Discovery | 5 |
+| T1552 Unsecured Credentials | 3 |
+
+## MITRE Engage Coverage by Goal
+
+| Goal | Detection Count |
+| --- | --- |
+| Elicit | 4 |
+| Understand | 7 |
+
+## MITRE Engage Coverage by Activity
+
+| Activity | Detection Count |
+| --- | --- |
+| Elicit: Credential Collection | 3 |
+| Elicit: Reveal Adversary Intent | 1 |
+| Understand: Collect Adversary Behavior | 7 |
+
+## Per-rule Mapping
+
+| Rule ID | Detections | ATT&CK ID | ATT&CK Technique | Engage Goal | Engage Activity |
+| --- | --- | --- | --- | --- | --- |
+| SSH_HONEYCREDENTIAL_LOGIN | 1 | T1552 | Unsecured Credentials | Elicit | Credential Collection |
+| SSH_HONEYFILE_ACCESS | 1 | T1005 | Data from Local System | Elicit | Reveal Adversary Intent |
+| SSH_LOGIN_FAILED | 0 | T1110 | Brute Force | Expose | Expose Decoy Service |
+| SSH_RECON_COMMAND | 5 | T1082 | System Information Discovery | Understand | Collect Adversary Behavior |
+| SSH_TOOL_TRANSFER_COMMAND | 0 | T1105 | Ingress Tool Transfer | Affect | Adversary Direction |
+| WEB_HONEYCREDENTIAL_USED | 2 | T1552 | Unsecured Credentials | Elicit | Credential Collection |
+| WEB_HONEYFILE_ACCESS | 2 | T1005 | Data from Local System | Understand | Collect Adversary Behavior |
+| WEB_SCANNER_PROBE | 0 | T1595 | Active Scanning | Expose | Expose Decoy Service |
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/PHASE9_READY.md
+# Phase 9 Ready
+
+MITRE ATT&CK and MITRE Engage mapping have been implemented.
+
+Completed items:
+
+- attack_mapping.yml created
+- engage_mapping.yml created
+- analyze_mapping.py created
+- run_mapping.sh created
+- show_mapping.sh created
+- generate_mapping_markdown.py created
+- mapping_summary.json generated
+- attack_coverage.json generated
+- engage_coverage.json generated
+- mapping_report.md generated
+
+Main mapping rule files:
+
+- /opt/deception-lab/parser/rules/attack_mapping.yml
+- /opt/deception-lab/parser/rules/engage_mapping.yml
+
+Main mapping outputs:
+
+- /opt/deception-lab/data/events/mapping_summary.json
+- /opt/deception-lab/data/events/attack_coverage.json
+- /opt/deception-lab/data/events/engage_coverage.json
+- /opt/deception-lab/reports/mapping_report.md
+
+Next phase:
+
+Phase 10 - Event timeline and Markdown / JSON report generation.
+```
 
 
 

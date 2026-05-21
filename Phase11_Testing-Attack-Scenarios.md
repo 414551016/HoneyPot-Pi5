@@ -494,11 +494,80 @@ lss@lss:/opt/deception-lab $ cat /opt/deception-lab/reports/report.json | jq '.s
 }
 ```
 
+### Step 11.2：先產生一份測試前報告
+- 執行：
+```
+這一步是建立 baseline，方便等等比較測試後的變化。
+/opt/deception-lab/scripts/generate_report.sh
 
+# 記錄目前 summary：
+cat /opt/deception-lab/reports/report.json | jq '.summary'
 
+# 你目前大概會看到：
+{
+  "total_events": 34,
+  "total_detections": 11,
+  "honeycredential_detections": 3,
+  "honeyfile_detections": 3
+}
+數字不一定要完全一樣，重點是後面測試後會增加。
+```
 
+### Step 11.3：建立測試紀錄資料夾
+- 執行：
+```
+mkdir -p /opt/deception-lab/data/test-scenarios
+```
+- 建立測試說明檔：
+```
+cat > /opt/deception-lab/data/test-scenarios/phase11_test_plan.md <<'EOF'
+# Phase 11 Test Plan
 
+This file records controlled attack-scenario tests against the local Raspberry Pi deception lab.
 
+Targets:
+
+- Cowrie SSH honeypot: 192.168.1.167:2222
+- Fake Web Admin Panel: http://192.168.1.167:8080
+
+Safety:
+
+- Only test against this Raspberry Pi lab.
+- Do not test against external hosts.
+- Do not use real credentials.
+- Do not use real malware or exploit payloads.
+EOF
+```
+
+### Step 11.4：測試 SSH 登入失敗
+- 這個測試模擬攻擊者猜錯密碼。
+```
+# 在 Raspberry Pi 上執行：
+ssh-keygen -f '/home/lss/.ssh/known_hosts' -R '[127.0.0.1]:2222'
+
+# 接著測試登入：
+ssh -p 2222 root@127.0.0.1
+
+# 第一次看到：
+Are you sure you want to continue connecting?
+輸入：yes
+密碼輸入：123456
+如果它再次要求密碼，你可以按：Ctrl + C
+
+# 這會產生 SSH failed login log。
+```
+
+### Step 11.5：測試 SSH honeycredential 成功登入
+- 現在測試真正的 honeycredential。
+```
+執行：
+ssh -p 2222 backup@127.0.0.1
+
+# 密碼輸入：Backup2026!
+
+# 如果成功，會進入 Cowrie 假 shell，類似：
+backup@svr04:~$
+```
 
 
 

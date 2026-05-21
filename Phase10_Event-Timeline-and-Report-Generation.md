@@ -1098,12 +1098,803 @@ Generated at: 2026-05-21T19:11:12.809837Z
 ```
 
 ### Step 10.9：查看 report.md
+- 請執行：
+```
+head -n 160 /opt/deception-lab/reports/report.md
 
+#你應該會看到：
+# Raspberry Pi Deception Lab MVP Report
 
+## 1. Executive Summary
+...
+Total events
+Total detections
+Honeycredential detections
+Honeyfile detections
+ATT&CK mapping coverage
+Engage mapping coverage
 
+# 執行結果：
+lss@lss:/opt/deception-lab $ head -n 160 /opt/deception-lab/reports/report.md
+# Raspberry Pi Deception Lab MVP Report
 
+Generated at: `2026-05-21T19:11:12.864557+00:00`
 
+## 1. Executive Summary
 
+This report summarizes events collected from the Raspberry Pi deception lab MVP.
+The lab includes a Cowrie SSH honeypot, a fake web admin panel, honeycredentials, honeyfiles, centralized log collection, detection rules, and MITRE mapping.
+
+| Metric | Value |
+| --- | --- |
+| Total events | 34 |
+| Total detections | 11 |
+| Honeycredential detections | 3 |
+| Honeyfile detections | 3 |
+| ATT&CK mapping coverage | 100.0% |
+| Engage mapping coverage | 100.0% |
+
+## 2. Event Summary
+
+### Events by Source
+
+| Source | Count |
+| --- | --- |
+| cowrie | 11 |
+| fake-web | 23 |
+
+### Events by Type
+
+| Event Type | Count |
+| --- | --- |
+| ssh_command | 8 |
+| ssh_connection | 1 |
+| ssh_login_success | 1 |
+| ssh_logout | 1 |
+| web_honeyfile_access | 2 |
+| web_login_attempt | 4 |
+| web_request | 17 |
+
+## 3. Detection Summary
+
+### Detections by Severity
+
+| Severity | Count |
+| --- | --- |
+| high | 6 |
+| medium | 5 |
+
+### Detections by Rule
+
+| Rule ID | Count |
+| --- | --- |
+| SSH_HONEYCREDENTIAL_LOGIN | 1 |
+| SSH_HONEYFILE_ACCESS | 1 |
+| SSH_RECON_COMMAND | 5 |
+| WEB_HONEYCREDENTIAL_USED | 2 |
+| WEB_HONEYFILE_ACCESS | 2 |
+
+## 4. Top Detections
+
+| Timestamp | Severity | Rule | Source | Src IP | Username | Observed Behavior | ATT&CK | Engage |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-12T18:41:52.679019+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:36:26.543366+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:27:53+00:00 | high | SSH_HONEYFILE_ACCESS | cowrie | 172.18.0.1 |  | cat /home/admin/secrets.txt | T1005 Data from Local System | Elicit: Reveal Adversary Intent |
+| 2026-05-12T18:26:42+00:00 | high | SSH_HONEYCREDENTIAL_LOGIN | cowrie | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-11T21:57:19.331247+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/vpn_users.csv | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-11T21:57:12.514844+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/secrets.txt | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:46+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:30+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:16+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:11+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | pwd | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+
+## 5. MITRE ATT&CK Coverage
+
+### By Tactic
+
+| Tactic | Detection Count |
+| --- | --- |
+| Collection | 3 |
+| Credential Access | 3 |
+| Discovery | 5 |
+
+### By Technique
+
+| Technique | Detection Count |
+| --- | --- |
+| T1005 Data from Local System | 3 |
+| T1082 System Information Discovery | 5 |
+| T1552 Unsecured Credentials | 3 |
+
+## 6. MITRE Engage Coverage
+
+### By Goal
+
+| Goal | Detection Count |
+| --- | --- |
+| Elicit | 4 |
+| Understand | 7 |
+
+### By Activity
+
+| Activity | Detection Count |
+| --- | --- |
+| Elicit: Credential Collection | 3 |
+| Elicit: Reveal Adversary Intent | 1 |
+| Understand: Collect Adversary Behavior | 7 |
+
+## 7. Deception Assets
+
+### Honeycredentials
+
+| ID | Username | Role | Severity |
+| --- | --- | --- | --- |
+| HC_ADMIN_001 | admin | fake administrator | high |
+| HC_BACKUP_001 | backup | fake backup operator | high |
+| HC_IOT_001 | iotadmin | fake IoT administrator | high |
+| HC_OPERATOR_001 | operator | fake maintenance operator | high |
+
+### Honeyfiles
+
+| ID | Filename | Severity | Description |
+| --- | --- | --- | --- |
+| HF_SECRET_001 | secrets.txt | high | Fake internal secret note containing honeycredentials. |
+| HF_BACKUP_001 | backup_config.ini | high | Fake backup configuration file. |
+| HF_VPN_001 | vpn_users.csv | high | Fake VPN user export. |
+| HF_SSHKEY_001 | ssh_keys_backup.txt | high | Fake SSH private key backup. |
+| HF_DB_001 | database_passwords.txt | high | Fake database credential backup. |
+
+## 8. Generated Files
+
+| File | Purpose |
+| --- | --- |
+| /opt/deception-lab/data/events/events.jsonl | Normalized events |
+| /opt/deception-lab/data/events/detections.jsonl | Detection results |
+| /opt/deception-lab/data/events/events_summary.json | Event summary |
+| /opt/deception-lab/data/events/mapping_summary.json | Mapping coverage summary |
+| /opt/deception-lab/reports/timeline.md | Human-readable event timeline |
+| /opt/deception-lab/reports/report.md | Main Markdown report |
+| /opt/deception-lab/reports/report.json | Machine-readable report |
+
+## 9. Safety Notes
+
+- This MVP should remain isolated from real internal networks.
+- All credentials and files used by the platform must remain fake.
+- Do not expose the lab directly to the Internet during MVP testing.
+- Do not mount Docker socket into honeypot containers.
+- Do not use privileged containers for honeypot services.
+```
+
+### Step 10.10：查看 report.json
+- 請執行：
+```
+cat /opt/deception-lab/reports/report.json | jq '.summary'
+
+# 你應該會看到：
+{
+  "total_events": 34,
+  "total_detections": 11,
+  ...
+}
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/reports/report.json | jq '.summary'
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "honeycredential_detections": 3,
+  "honeyfile_detections": 3,
+  "total_detections": 11,
+  "total_events": 34
+}
+```
+- 再查看 mapping：
+```
+cat /opt/deception-lab/reports/report.json | jq '.mapping'
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/reports/report.json | jq '.mapping'
+{
+  "attack_coverage": {
+    "detections_by_tactic": {
+      "Collection": 3,
+      "Credential Access": 3,
+      "Discovery": 5
+    },
+    "detections_by_technique": {
+      "T1005 Data from Local System": 3,
+      "T1082 System Information Discovery": 5,
+      "T1552 Unsecured Credentials": 3
+    }
+  },
+  "attack_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "engage_coverage": {
+    "detections_by_activity": {
+      "Elicit: Credential Collection": 3,
+      "Elicit: Reveal Adversary Intent": 1,
+      "Understand: Collect Adversary Behavior": 7
+    },
+    "detections_by_goal": {
+      "Elicit": 4,
+      "Understand": 7
+    }
+  },
+  "engage_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  }
+}
+```
+
+### Step 10.11：建立報告快速查看腳本
+- 請執行：
+```
+cat > /opt/deception-lab/scripts/show_report.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPORT_DIR="/opt/deception-lab/reports"
+
+echo "=== Report Files ==="
+ls -lah "$REPORT_DIR"
+
+echo
+echo "=== Main Report Preview ==="
+if [ -f "$REPORT_DIR/report.md" ]; then
+  head -n 80 "$REPORT_DIR/report.md"
+else
+  echo "report.md not found."
+fi
+
+echo
+echo "=== Timeline Preview ==="
+if [ -f "$REPORT_DIR/timeline.md" ]; then
+  head -n 80 "$REPORT_DIR/timeline.md"
+else
+  echo "timeline.md not found."
+fi
+
+echo
+echo "=== JSON Report Summary ==="
+if [ -f "$REPORT_DIR/report.json" ]; then
+  cat "$REPORT_DIR/report.json" | jq '.summary'
+else
+  echo "report.json not found."
+fi
+EOF
+```
+- 設定可執行：
+```
+chmod +x /opt/deception-lab/scripts/show_report.sh
+```
+- 執行：
+```
+/opt/deception-lab/scripts/show_report.sh
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ chmod +x /opt/deception-lab/scripts/show_report.sh
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/show_report.sh
+=== Report Files ===
+total 40K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxr-xr-x 8 lss lss 4.0K May 21 08:15 ..
+-rw-rw-r-- 1 lss lss 2.0K May 22 03:11 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 22 03:11 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 22 03:11 report.md
+-rw-rw-r-- 1 lss lss 8.0K May 22 03:11 timeline.md
+
+=== Main Report Preview ===
+# Raspberry Pi Deception Lab MVP Report
+
+Generated at: `2026-05-21T19:11:12.864557+00:00`
+
+## 1. Executive Summary
+
+This report summarizes events collected from the Raspberry Pi deception lab MVP.
+The lab includes a Cowrie SSH honeypot, a fake web admin panel, honeycredentials, honeyfiles, centralized log collection, detection rules, and MITRE mapping.
+
+| Metric | Value |
+| --- | --- |
+| Total events | 34 |
+| Total detections | 11 |
+| Honeycredential detections | 3 |
+| Honeyfile detections | 3 |
+| ATT&CK mapping coverage | 100.0% |
+| Engage mapping coverage | 100.0% |
+
+## 2. Event Summary
+
+### Events by Source
+
+| Source | Count |
+| --- | --- |
+| cowrie | 11 |
+| fake-web | 23 |
+
+### Events by Type
+
+| Event Type | Count |
+| --- | --- |
+| ssh_command | 8 |
+| ssh_connection | 1 |
+| ssh_login_success | 1 |
+| ssh_logout | 1 |
+| web_honeyfile_access | 2 |
+| web_login_attempt | 4 |
+| web_request | 17 |
+
+## 3. Detection Summary
+
+### Detections by Severity
+
+| Severity | Count |
+| --- | --- |
+| high | 6 |
+| medium | 5 |
+
+### Detections by Rule
+
+| Rule ID | Count |
+| --- | --- |
+| SSH_HONEYCREDENTIAL_LOGIN | 1 |
+| SSH_HONEYFILE_ACCESS | 1 |
+| SSH_RECON_COMMAND | 5 |
+| WEB_HONEYCREDENTIAL_USED | 2 |
+| WEB_HONEYFILE_ACCESS | 2 |
+
+## 4. Top Detections
+
+| Timestamp | Severity | Rule | Source | Src IP | Username | Observed Behavior | ATT&CK | Engage |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-12T18:41:52.679019+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:36:26.543366+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:27:53+00:00 | high | SSH_HONEYFILE_ACCESS | cowrie | 172.18.0.1 |  | cat /home/admin/secrets.txt | T1005 Data from Local System | Elicit: Reveal Adversary Intent |
+| 2026-05-12T18:26:42+00:00 | high | SSH_HONEYCREDENTIAL_LOGIN | cowrie | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-11T21:57:19.331247+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/vpn_users.csv | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-11T21:57:12.514844+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/secrets.txt | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:46+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:30+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:16+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:11+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | pwd | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+
+## 5. MITRE ATT&CK Coverage
+
+### By Tactic
+
+| Tactic | Detection Count |
+| --- | --- |
+| Collection | 3 |
+
+=== Timeline Preview ===
+# Deception Lab Event Timeline
+
+Generated at: 2026-05-21T19:11:12.809837Z
+
+## Summary
+
+- Total events: 34
+- Total detections: 11
+
+## 2026-05-11
+
+### 21:42:08 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`172.18.0.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:42:34 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`172.18.0.1`; path=`/api/status`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/static/style.css`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/favicon.ico`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_login_attempt** from `fake-web` src_ip=`192.168.1.1`; username=`admin`
+- Severity: `medium`
+- Tags: `web, login`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/static/style.css`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:57:09 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/backup`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+=== JSON Report Summary ===
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "honeycredential_detections": 3,
+  "honeyfile_detections": 3,
+  "total_detections": 11,
+  "total_events": 34
+}
+```
+
+### Step 10.12：更新 README，加入報告指令
+- 執行：
+```
+cat >> /opt/deception-lab/README.md <<'EOF'
+
+## Phase 10 Report Generation
+
+Generate final reports:
+
+```bash
+/opt/deception-lab/scripts/generate_report.sh
+EOF
+```
+- Show report preview:
+```
+/opt/deception-lab/scripts/show_report.sh
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/show_report.sh
+=== Report Files ===
+total 40K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxr-xr-x 8 lss lss 4.0K May 21 08:15 ..
+-rw-rw-r-- 1 lss lss 2.0K May 22 03:11 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 22 03:11 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 22 03:11 report.md
+-rw-rw-r-- 1 lss lss 8.0K May 22 03:11 timeline.md
+
+=== Main Report Preview ===
+# Raspberry Pi Deception Lab MVP Report
+
+Generated at: `2026-05-21T19:11:12.864557+00:00`
+
+## 1. Executive Summary
+
+This report summarizes events collected from the Raspberry Pi deception lab MVP.
+The lab includes a Cowrie SSH honeypot, a fake web admin panel, honeycredentials, honeyfiles, centralized log collection, detection rules, and MITRE mapping.
+
+| Metric | Value |
+| --- | --- |
+| Total events | 34 |
+| Total detections | 11 |
+| Honeycredential detections | 3 |
+| Honeyfile detections | 3 |
+| ATT&CK mapping coverage | 100.0% |
+| Engage mapping coverage | 100.0% |
+
+## 2. Event Summary
+
+### Events by Source
+
+| Source | Count |
+| --- | --- |
+| cowrie | 11 |
+| fake-web | 23 |
+
+### Events by Type
+
+| Event Type | Count |
+| --- | --- |
+| ssh_command | 8 |
+| ssh_connection | 1 |
+| ssh_login_success | 1 |
+| ssh_logout | 1 |
+| web_honeyfile_access | 2 |
+| web_login_attempt | 4 |
+| web_request | 17 |
+
+## 3. Detection Summary
+
+### Detections by Severity
+
+| Severity | Count |
+| --- | --- |
+| high | 6 |
+| medium | 5 |
+
+### Detections by Rule
+
+| Rule ID | Count |
+| --- | --- |
+| SSH_HONEYCREDENTIAL_LOGIN | 1 |
+| SSH_HONEYFILE_ACCESS | 1 |
+| SSH_RECON_COMMAND | 5 |
+| WEB_HONEYCREDENTIAL_USED | 2 |
+| WEB_HONEYFILE_ACCESS | 2 |
+
+## 4. Top Detections
+
+| Timestamp | Severity | Rule | Source | Src IP | Username | Observed Behavior | ATT&CK | Engage |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-12T18:41:52.679019+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:36:26.543366+00:00 | high | WEB_HONEYCREDENTIAL_USED | fake-web | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-12T18:27:53+00:00 | high | SSH_HONEYFILE_ACCESS | cowrie | 172.18.0.1 |  | cat /home/admin/secrets.txt | T1005 Data from Local System | Elicit: Reveal Adversary Intent |
+| 2026-05-12T18:26:42+00:00 | high | SSH_HONEYCREDENTIAL_LOGIN | cowrie | 172.18.0.1 | backup |  | T1552 Unsecured Credentials | Elicit: Credential Collection |
+| 2026-05-11T21:57:19.331247+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/vpn_users.csv | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-11T21:57:12.514844+00:00 | high | WEB_HONEYFILE_ACCESS | fake-web | 192.168.1.1 |  | /download/secrets.txt | T1005 Data from Local System | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:46+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:30+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls /home/admin | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:16+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | ls | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+| 2026-05-12T18:27:11+00:00 | medium | SSH_RECON_COMMAND | cowrie | 172.18.0.1 |  | pwd | T1082 System Information Discovery | Understand: Collect Adversary Behavior |
+
+## 5. MITRE ATT&CK Coverage
+
+### By Tactic
+
+| Tactic | Detection Count |
+| --- | --- |
+| Collection | 3 |
+
+=== Timeline Preview ===
+# Deception Lab Event Timeline
+
+Generated at: 2026-05-21T19:11:12.809837Z
+
+## Summary
+
+- Total events: 34
+- Total detections: 11
+
+## 2026-05-11
+
+### 21:42:08 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`172.18.0.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:42:34 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`172.18.0.1`; path=`/api/status`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/static/style.css`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:40 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/favicon.ico`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/login`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_login_attempt** from `fake-web` src_ip=`192.168.1.1`; username=`admin`
+- Severity: `medium`
+- Tags: `web, login`
+- Detections: none
+
+### 21:46:56 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/static/style.css`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+### 21:57:09 UTC
+
+- Event: **web_request** from `fake-web` src_ip=`192.168.1.1`; path=`/backup`
+- Severity: `info`
+- Tags: `web, request`
+- Detections: none
+
+=== JSON Report Summary ===
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 1,
+    "SSH_RECON_COMMAND": 5,
+    "WEB_HONEYCREDENTIAL_USED": 2,
+    "WEB_HONEYFILE_ACCESS": 2
+  },
+  "detections_by_severity": {
+    "high": 6,
+    "medium": 5
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 23
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 2,
+    "web_login_attempt": 4,
+    "web_request": 17
+  },
+  "honeycredential_detections": 3,
+  "honeyfile_detections": 3,
+  "total_detections": 11,
+  "total_events": 34
+}
+```
+- Generated report files:
+```
+/opt/deception-lab/reports/timeline.md
+/opt/deception-lab/reports/report.md
+/opt/deception-lab/reports/report.json
+```
+- 執行完成後，用這個確認 README 最後內容：
+```
+tail -n 40 /opt/deception-lab/README.md
+
+# 你應該會看到：
+## Phase 10 Report Generation
+Generate final reports:
+```bash
+/opt/deception-lab/scripts/generate_report.sh
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ tail -n 40 /opt/deception-lab/README.md
+2. Fake Web Admin Panel
+3. Honeycredentials
+4. Honeyfiles
+5. Log Collector
+6. Python Event Parser
+7. MITRE ATT&CK / MITRE Engage Mapping
+8. Markdown / JSON Report Generator
+
+## Directory Structure
+
+```text
+/opt/deception-lab
+├── docker-compose.yml
+├── .env
+├── cowrie
+├── fake-web
+├── parser
+├── data
+│   ├── logs
+│   │   ├── cowrie
+│   │   └── web
+│   ├── events
+│   └── samples
+│       └── uploads
+├── reports
+└── scripts
+
+## Phase 10 Report Generation
+
+Generate final reports:
+
+```bash
+/opt/deception-lab/scripts/generate_report.sh
+
+## Phase 10 Report Generation
+
+Generate final reports:
+
+```bash
+/opt/deception-lab/scripts/generate_report.sh
+```
 
 
 

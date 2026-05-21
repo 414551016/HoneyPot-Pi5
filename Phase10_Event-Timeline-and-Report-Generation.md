@@ -1896,8 +1896,16 @@ Generate final reports:
 /opt/deception-lab/scripts/generate_report.sh
 ```
 
-
-
+## 第十階段完成檢查
+最後請執行以下指令，把輸出貼給我確認：
+```
+/opt/deception-lab/scripts/generate_report.sh
+ls -lah /opt/deception-lab/reports
+head -n 120 /opt/deception-lab/reports/report.md
+head -n 120 /opt/deception-lab/reports/timeline.md
+cat /opt/deception-lab/reports/report.json | jq '.summary'
+cat /opt/deception-lab/PHASE10_READY.md
+```
 
 
 

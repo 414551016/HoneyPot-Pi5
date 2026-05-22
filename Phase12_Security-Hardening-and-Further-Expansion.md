@@ -28,7 +28,7 @@
 cd /opt/deception-lab
 /opt/deception-lab/scripts/status_lab.sh
 
-# 你應該確認：
+# 你應該確認：這三個 port 正常即可。
 22/tcp    真實 SSH 管理入口
 2222/tcp  Cowrie SSH honeypot
 8080/tcp  Fake Web Admin Panel
@@ -91,15 +91,1133 @@ Collected files:
   lines: 26
 ```
 
+### Step 12.2：建立安全加固筆記
+先建立一份安全原則文件。
+```
+cat > /opt/deception-lab/SECURITY_NOTES.md <<'EOF'
+# Raspberry Pi Deception Lab Security Notes
+
+This lab is designed as a small single-node MVP deception and honeypot environment.
+
+## Safety principles
+
+- Do not expose this lab directly to the Internet during MVP testing.
+- Keep this lab in a controlled LAN or isolated VLAN.
+- Do not store real credentials in honeyfiles.
+- Do not store real SSH private keys in honeyfiles.
+- Do not mount the Docker socket into honeypot containers.
+- Do not run honeypot containers in privileged mode.
+- Do not bridge this lab into production networks.
+- Keep Raspberry Pi management SSH on port 22 separate from Cowrie honeypot SSH on port 2222.
+- Rotate and archive logs to protect SD card storage.
+- Regularly review generated reports before sharing.
+
+## Current exposed services
+
+- 22/tcp: Real Raspberry Pi SSH management
+- 2222/tcp: Cowrie SSH honeypot
+- 8080/tcp: Fake Web Admin Panel
+
+## Recommended network placement
+
+- Use a dedicated lab subnet if available.
+- Use a separate Wi-Fi SSID or VLAN if available.
+- Do not place the device in a production server subnet.
+- Do not port-forward 2222 or 8080 from the Internet router.
+EOF
+```
+- 確認：
+```
+cat /opt/deception-lab/SECURITY_NOTES.md
+```
+
+### Step 12.3：檢查 UFW 防火牆狀態
+- 執行：
+```
+sudo ufw status verbose
+
+# 你目前應該看到類似：
+Status: active
+Default: deny incoming, allow outgoing
+22/tcp ALLOW
+2222/tcp ALLOW
+8080/tcp ALLOW
+
+# 這代表目前是：這個狀態是合理的 MVP 設定。
+只允許 22、2222、8080 進來
+其他 incoming 預設拒絕
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ sudo ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere
+2222/tcp                   ALLOW IN    Anywhere
+8080/tcp                   ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+2222/tcp (v6)              ALLOW IN    Anywhere (v6)
+8080/tcp (v6)              ALLOW IN    Anywhere (v6)
+```
+
+### Step 12.4：建立更安全的 UFW 備份腳本
+- 先建立防火牆規則備份。
+```
+mkdir -p /opt/deception-lab/backups/ufw
+```
+```
+cat > /opt/deception-lab/scripts/backup_ufw_rules.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+BACKUP_DIR="/opt/deception-lab/backups/ufw"
+TS="$(date -u +"%Y%m%dT%H%M%SZ")"
+
+mkdir -p "$BACKUP_DIR"
+
+sudo ufw status verbose > "$BACKUP_DIR/ufw-status-$TS.txt"
+sudo cp -a /etc/ufw "$BACKUP_DIR/etc-ufw-$TS"
+
+echo "[+] UFW rules backed up to:"
+echo "$BACKUP_DIR/ufw-status-$TS.txt"
+echo "$BACKUP_DIR/etc-ufw-$TS"
+EOF
+```
+- 設定權限、執行：
+```
+chmod +x /opt/deception-lab/scripts/backup_ufw_rules.sh
+/opt/deception-lab/scripts/backup_ufw_rules.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ chmod +x /opt/deception-lab/scripts/backup_ufw_rules.sh
+/opt/deception-lab/scripts/backup_ufw_rules.sh
+[+] UFW rules backed up to:
+/opt/deception-lab/backups/ufw/ufw-status-20260522T231217Z.txt
+/opt/deception-lab/backups/ufw/etc-ufw-20260522T231217Z
+```
+
+### Step 12.5：建立 UFW 安全重設腳本
+這個腳本會保留目前 MVP 需要的 port。
+```
+cat > /opt/deception-lab/scripts/apply_lab_firewall.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[!] This will reset UFW rules for the deception lab."
+echo "[!] Allowed inbound ports will be: 22/tcp, 2222/tcp, 8080/tcp."
+read -r -p "Continue? Type YES: " CONFIRM
+
+if [ "$CONFIRM" != "YES" ]; then
+  echo "Aborted."
+  exit 1
+fi
+
+sudo ufw --force reset
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw default deny routed
+
+sudo ufw allow 22/tcp comment 'Real Raspberry Pi SSH management'
+sudo ufw allow 2222/tcp comment 'Cowrie SSH honeypot'
+sudo ufw allow 8080/tcp comment 'Fake Web Admin Panel'
+
+sudo ufw logging low
+sudo ufw --force enable
+
+echo
+sudo ufw status verbose
+EOF
+```
+- 設定權限：
+```
+chmod +x /opt/deception-lab/scripts/apply_lab_firewall.sh
+
+# 先不要急著執行。
+只有當你未來防火牆規則亂掉時，再執行：
+/opt/deception-lab/scripts/apply_lab_firewall.sh
+它會要求你輸入：YES  才會真的重設。
+```
+
+### Step 12.6：建立限制內網來源版本的防火牆腳本，可選
+如果你想更安全，只允許你的內網 192.168.1.0/24 連到 lab，可以建立這個版本。
+```
+cat > /opt/deception-lab/scripts/apply_lab_firewall_lan_only.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+LAN_CIDR="192.168.1.0/24"
+
+echo "[!] This will reset UFW rules and only allow lab access from $LAN_CIDR."
+echo "[!] Allowed inbound ports from LAN: 22/tcp, 2222/tcp, 8080/tcp."
+read -r -p "Continue? Type YES: " CONFIRM
+
+if [ "$CONFIRM" != "YES" ]; then
+  echo "Aborted."
+  exit 1
+fi
+
+sudo ufw --force reset
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw default deny routed
+
+sudo ufw allow from "$LAN_CIDR" to any port 22 proto tcp comment 'Real SSH from LAN only'
+sudo ufw allow from "$LAN_CIDR" to any port 2222 proto tcp comment 'Cowrie from LAN only'
+sudo ufw allow from "$LAN_CIDR" to any port 8080 proto tcp comment 'Fake Web from LAN only'
+
+sudo ufw logging low
+sudo ufw --force enable
+
+echo
+sudo ufw status verbose
+EOF
+```
+- 設定權限：
+```
+chmod +x /opt/deception-lab/scripts/apply_lab_firewall_lan_only.sh
+
+# 建議你目前先不要執行，除非你確定自己的測試來源都在：
+192.168.1.0/24
+```
+
+### Step 12.7：檢查 Docker Compose 是否使用危險設定
+- 執行：
+```
+grep -nE "privileged|network_mode|/var/run/docker.sock|cap_add" /opt/deception-lab/docker-compose.yml || true
+
+# 理想狀態是沒有輸出。
+如果沒有輸出，代表目前沒有看到這些高風險設定：
+privileged: true
+network_mode: host
+/var/run/docker.sock
+cap_add
+```
+
+### Step 12.8：備份 docker-compose.yml
+- 執行：
+```
+mkdir -p /opt/deception-lab/backups/compose
+cp /opt/deception-lab/docker-compose.yml \
+  /opt/deception-lab/backups/compose/docker-compose-$(date -u +"%Y%m%dT%H%M%SZ").yml
+```
+- 確認：
+```
+ls -lah /opt/deception-lab/backups/compose
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/backups/compose
+total 12K
+drwxrwxr-x 2 lss lss 4.0K May 23 07:19 .
+drwxrwxr-x 4 lss lss 4.0K May 23 07:19 ..
+-rw-rw-r-- 1 lss lss  991 May 23 07:19 docker-compose-20260522T231915Z.yml
+```
+
+### Step 12.9：加強 docker-compose.yml 的安全選項
+你目前服務已經有 security_opt: no-new-privileges:true。
+現在我們補上比較保守的 logging 限制，避免 Docker log 無限成長。
+- 先備份：
+```
+cp /opt/deception-lab/docker-compose.yml /opt/deception-lab/docker-compose.phase11.yml
+```
+- 用 Python 自動加入 Docker logging 設定：
+```
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("/opt/deception-lab/docker-compose.yml")
+text = path.read_text()
+
+logging_block = """    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+"""
+
+services = ["cowrie", "fake-web"]
+
+for service in services:
+    marker = f"  {service}:\n"
+    if marker not in text:
+        raise SystemExit(f"Service {service} not found")
+
+if "max-size: \"10m\"" in text:
+    print("[=] Logging limits already present. No change made.")
+else:
+    # Insert logging block before networks section in each service.
+    text = text.replace(
+        """    security_opt:
+      - no-new-privileges:true
+
+    depends_on:""",
+        """    security_opt:
+      - no-new-privileges:true
+""" + logging_block + """
+    depends_on:"""
+    )
+
+    text = text.replace(
+        """    security_opt:
+      - no-new-privileges:true
+
+networks:""",
+        """    security_opt:
+      - no-new-privileges:true
+""" + logging_block + """
+networks:"""
+    )
+
+    path.write_text(text)
+    print("[+] Logging limits added.")
+PY
+```
+- 檢查 Compose：
+```
+docker compose config
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ docker compose config
+name: deception-lab
+services:
+  cowrie:
+    container_name: deception-cowrie
+    environment:
+      TZ: Asia/Taipei
+    image: cowrie/cowrie:latest
+    networks:
+      deception_net: null
+    ports:
+      - mode: ingress
+        target: 2222
+        published: "2222"
+        protocol: tcp
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: bind
+        source: /opt/deception-lab/cowrie/honeyfs
+        target: /cowrie/cowrie-git/src/cowrie/data/honeyfs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /opt/deception-lab/cowrie/etc/userdb.txt
+        target: /cowrie/cowrie-git/etc/userdb.txt
+        read_only: true
+        bind: {}
+  fake-web:
+    build:
+      context: /opt/deception-lab/fake-web
+      dockerfile: Dockerfile
+    container_name: deception-fake-web
+    depends_on:
+      cowrie:
+        condition: service_started
+        required: true
+    environment:
+      HONEYFILE_DIR: /app/honeyfiles
+      TZ: Asia/Taipei
+      WEB_LOG_DIR: /app/logs
+    networks:
+      deception_net: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: bind
+        source: /opt/deception-lab/data/logs/web
+        target: /app/logs
+        bind: {}
+      - type: bind
+        source: /opt/deception-lab/fake-web/honeyfiles
+        target: /app/honeyfiles
+        read_only: true
+        bind: {}
+networks:
+  deception_net:
+    name: deception-lab_deception_net
+    driver: bridge
+```
+- 如果沒有錯誤，重啟服務：
+```
+docker compose down
+docker compose up -d
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ docker compose down
+docker compose up -d
+[+] down 3/3
+ ✔ Container deception-fake-web        Removed                                                                                              0.5s
+ ✔ Container deception-cowrie          Removed                                                                                              0.5s
+ ✔ Network deception-lab_deception_net Removed                                                                                              0.2s
+[+] up 3/3
+ ✔ Network deception-lab_deception_net Created                                                                                              0.0s
+ ✔ Container deception-cowrie          Started                                                                                              0.6s
+ ✔ Container deception-fake-web        Started
+```
+- 確認：
+```
+docker compose ps
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ docker compose ps
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS          PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     45 seconds ago   Up 44 seconds   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   45 seconds ago   Up 44 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+```
+
+### Step 12.10：整理檔案權限
+- 將專案主要檔案交給 lss 管理：
+```
+sudo chown -R lss:lss /opt/deception-lab
+```
+- 設定一般權限：
+```
+find /opt/deception-lab -type d -exec chmod 775 {} \;
+find /opt/deception-lab -type f -exec chmod 664 {} \;
+```
+- 把 scripts 重新設為可執行：
+```
+chmod +x /opt/deception-lab/scripts/*.sh
+chmod +x /opt/deception-lab/parser/*.py
+```
+- 確認：
+```
+ls -lah /opt/deception-lab/scripts
+
+# 你應該看到腳本有 x 權限，例如：-rwxrwxr-x
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/scripts
+total 92K
+drwxrwxr-x 2 lss lss 4.0K May 23 07:16 .
+drwxrwxr-x 9 lss lss 4.0K May 23 07:21 ..
+-rwxrwxr-x 1 lss lss  787 May 23 07:16 apply_lab_firewall_lan_only.sh
+-rwxrwxr-x 1 lss lss  642 May 23 07:13 apply_lab_firewall.sh
+-rwxrwxr-x 1 lss lss  352 May 23 07:11 backup_ufw_rules.sh
+-rwxrwxr-x 1 lss lss 1012 May 13 02:48 check_assets.sh
+-rwxrwxr-x 1 lss lss  512 May 11 05:20 check_env.sh
+-rwxrwxr-x 1 lss lss  759 May 23 06:49 check_phase11_results.sh
+-rwxrwxr-x 1 lss lss  519 May 15 07:14 cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 3.0K May 15 06:52 collect_logs.sh
+-rwxrwxr-x 1 lss lss  678 May 22 03:09 generate_report.sh
+-rwxrwxr-x 1 lss lss  127 May 11 19:52 logs_lab.sh
+-rwxrwxr-x 1 lss lss  203 May 11 19:53 restart_lab.sh
+-rwxrwxr-x 1 lss lss  880 May 21 08:12 run_mapping.sh
+-rwxrwxr-x 1 lss lss  529 May 20 03:26 run_parser.sh
+-rwxrwxr-x 1 lss lss  972 May 15 07:09 show_collected_logs.sh
+-rwxrwxr-x 1 lss lss  859 May 20 03:42 show_events.sh
+-rwxrwxr-x 1 lss lss 1.1K May 21 08:03 show_mapping.sh
+-rwxrwxr-x 1 lss lss  616 May 22 03:20 show_report.sh
+-rwxrwxr-x 1 lss lss  181 May 11 19:47 start_lab.sh
+-rwxrwxr-x 1 lss lss  637 May 15 07:21 status_lab.sh
+-rwxrwxr-x 1 lss lss  151 May 11 19:49 stop_lab.sh
+-rwxrwxr-x 1 lss lss 1.3K May 23 06:09 test_web_scenarios.sh
+```
+
+### Step 12.11：建立 log retention 檢查
+- 你前面已經建立過：
+```
+/opt/deception-lab/scripts/cleanup_old_logs.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/cleanup_old_logs.sh
+=== Disk usage before cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.2M    /opt/deception-lab/data
+
+=== Removing archive directories older than 14 days ===
+
+=== Disk usage after cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.2M    /opt/deception-lab/data
+```
+- 現在確認它存在並可執行：
+```
+ls -l /opt/deception-lab/scripts/cleanup_old_logs.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ ls -l /opt/deception-lab/scripts/cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 519 May 15 07:14 /opt/deception-lab/scripts/cleanup_old_logs.sh
+```
+- 執行一次：
+```
+/opt/deception-lab/scripts/cleanup_old_logs.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/cleanup_old_logs.sh
+=== Disk usage before cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.2M    /opt/deception-lab/data
+
+=== Removing archive directories older than 14 days ===
+
+=== Disk usage after cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.2M    /opt/deception-lab/data
+```
+
+### Step 12.12：建立每週手動維護腳本
+```
+這個腳本會做：
+1. 顯示系統狀態
+2. 清理舊 archive
+3. 重新產生報告
+4. 顯示磁碟用量
+```
+```
+cat > /opt/deception-lab/scripts/weekly_maintenance.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== Deception Lab Weekly Maintenance ==="
+date -u
+
+echo
+echo "=== Status ==="
+/opt/deception-lab/scripts/status_lab.sh
+
+echo
+echo "=== Cleanup old logs ==="
+/opt/deception-lab/scripts/cleanup_old_logs.sh
+
+echo
+echo "=== Generate report ==="
+/opt/deception-lab/scripts/generate_report.sh
+
+echo
+echo "=== Disk usage ==="
+df -h /
+du -sh /opt/deception-lab || true
+du -sh /opt/deception-lab/data || true
+du -sh /opt/deception-lab/reports || true
+
+echo
+echo "=== Done ==="
+EOF
+```
+- 設定權限、執行：
+```
+chmod +x /opt/deception-lab/scripts/weekly_maintenance.sh
+/opt/deception-lab/scripts/weekly_maintenance.sh
+
+# 如果執行太久，可以等它跑完；這會重新產生報告。
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/weekly_maintenance.sh
+=== Deception Lab Weekly Maintenance ===
+Fri 22 May 23:31:29 UTC 2026
+
+=== Status ===
+=== Docker Compose Services ===
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED         STATUS         PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     7 minutes ago   Up 7 minutes   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   7 minutes ago   Up 7 minutes   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+=== Docker Networks ===
+8f795f18a6a1   deception-lab_deception_net   bridge    local
+
+=== Listening Ports ===
+tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=7376,fd=8))
+tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=7458,fd=8))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1188,fd=6))
+tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=7384,fd=8))
+tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=7464,fd=8))
+tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1188,fd=7))
+
+=== Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+=== Log Directories ===
+8.0K    /opt/deception-lab/data/logs/cowrie
+32K     /opt/deception-lab/data/logs/web
+
+=== Collected Logs ===
+total 48K
+drwxrwxr-x 2 lss lss 4.0K May 15 07:18 .
+drwxrwxr-x 9 lss lss 4.0K May 22 03:50 ..
+-rw-rw-r-- 1 lss lss  371 May 23 07:31 collection_summary.txt
+-rw-rw-r-- 1 lss lss 2.0K May 23 07:31 cowrie-docker.log
+-rw-rw-r-- 1 lss lss  579 May 15 07:18 README.md
+-rw-rw-r-- 1 lss lss  777 May 23 07:31 source_manifest.json
+-rw-rw-r-- 1 lss lss  18K May 23 07:31 web_access.jsonl
+-rw-rw-r-- 1 lss lss 3.9K May 23 07:31 web_auth.jsonl
+
+=== Latest Collection Summary ===
+Collection time UTC: 20260522T233122Z
+
+Collected files:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+  size: 4.0K
+  lines: 15
+- /opt/deception-lab/data/collected/web_access.jsonl
+  size: 20K
+  lines: 58
+- /opt/deception-lab/data/collected/web_auth.jsonl
+  size: 4.0K
+  lines: 10
+- /opt/deception-lab/data/collected/source_manifest.json
+  size: 4.0K
+  lines: 26
+
+=== Cleanup old logs ===
+=== Disk usage before cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.1M    /opt/deception-lab/data
+
+=== Removing archive directories older than 14 days ===
+
+=== Disk usage after cleanup ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+
+1.1M    /opt/deception-lab/data
+
+=== Generate report ===
+[+] Refreshing parser and mapping outputs...
+[+] Running parser first to refresh detections...
+[+] Collecting latest logs...
+[+] Collecting logs at UTC time: 20260522T233129Z
+[+] Exporting Cowrie Docker logs...
+[+] Collecting Fake Web access log...
+[+] Collecting Fake Web auth log...
+[+] Creating source manifest...
+[+] Creating collection summary...
+[+] Archiving collected logs...
+
+[+] Collection completed.
+[+] Current collected directory:
+total 48K
+drwxrwxr-x 2 lss lss 4.0K May 15 07:18 .
+drwxrwxr-x 9 lss lss 4.0K May 22 03:50 ..
+-rw-rw-r-- 1 lss lss  371 May 23 07:31 collection_summary.txt
+-rw-rw-r-- 1 lss lss 2.0K May 23 07:31 cowrie-docker.log
+-rw-rw-r-- 1 lss lss  579 May 15 07:18 README.md
+-rw-rw-r-- 1 lss lss  777 May 23 07:31 source_manifest.json
+-rw-rw-r-- 1 lss lss  18K May 23 07:31 web_access.jsonl
+-rw-rw-r-- 1 lss lss 3.9K May 23 07:31 web_auth.jsonl
+
+[+] Summary:
+Collection time UTC: 20260522T233129Z
+
+Collected files:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+  size: 4.0K
+  lines: 15
+- /opt/deception-lab/data/collected/web_access.jsonl
+  size: 20K
+  lines: 58
+- /opt/deception-lab/data/collected/web_auth.jsonl
+  size: 4.0K
+  lines: 10
+- /opt/deception-lab/data/collected/source_manifest.json
+  size: 4.0K
+  lines: 26
+
+[+] Running event parser...
+[+] Parsing completed.
+[+] Events written to: /opt/deception-lab/data/events/events.jsonl
+[+] Detections written to: /opt/deception-lab/data/events/detections.jsonl
+[+] Summary written to: /opt/deception-lab/data/events/events_summary.json
+
+Total events: 68
+Total detections: 31
+
+[+] Event output files:
+total 72K
+drwxrwxr-x 2 lss lss 4.0K May 21 07:53 .
+drwxrwxr-x 9 lss lss 4.0K May 22 03:50 ..
+-rw-rw-r-- 1 lss lss 2.9K May 23 07:31 attack_coverage.json
+-rw-rw-r-- 1 lss lss  20K May 23 07:31 detections.jsonl
+-rw-rw-r-- 1 lss lss 2.2K May 23 07:31 engage_coverage.json
+-rw-rw-r-- 1 lss lss  24K May 23 07:31 events.jsonl
+-rw-rw-r-- 1 lss lss  456 May 23 07:31 events_summary.json
+-rw-rw-r-- 1 lss lss 6.0K May 23 07:31 mapping_summary.json
+
+[+] Event summary:
+{
+  "detections_by_rule": {
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 16,
+    "medium": 15
+  },
+  "events_by_source": {
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "generated_at": "2026-05-22T23:31:29.775520+00:00",
+  "total_detections": 31,
+  "total_events": 68
+}
+[+] Running MITRE mapping analyzer...
+[+] Mapping analysis completed.
+[+] Mapping summary: /opt/deception-lab/data/events/mapping_summary.json
+[+] ATT&CK coverage: /opt/deception-lab/data/events/attack_coverage.json
+[+] Engage coverage: /opt/deception-lab/data/events/engage_coverage.json
+
+Defined detection rules: 8
+Total detections: 31
+ATT&CK mapping coverage: 100.0%
+Engage mapping coverage: 100.0%
+
+[+] Generating mapping Markdown report...
+[+] Mapping markdown report written to: /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping output files:
+-rw-rw-r-- 1 lss lss 2.9K May 23 07:31 attack_coverage.json
+-rw-rw-r-- 1 lss lss 2.2K May 23 07:31 engage_coverage.json
+-rw-rw-r-- 1 lss lss 6.0K May 23 07:31 mapping_summary.json
+
+[+] Mapping report:
+-rw-rw-r-- 1 lss lss 2.0K May 23 07:31 /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping summary:
+{
+  "attack_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "defined_detection_rules": 8,
+  "detections_by_rule": {
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "engage_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "generated_at": "2026-05-22T23:31:29.853235+00:00",
+  "input_detections": "/opt/deception-lab/data/events/detections.jsonl",
+  "per_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": {
+      "attack": {
+        "rationale": "The attacker used a credential intentionally planted in deception assets. This indicates exposure to unsecured credential material.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "A planted SSH credential caused the adversary to reveal credential-use behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Attempting to read honeyfiles such as secrets.txt or backup_config.ini indicates interest in local sensitive data.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Reveal Adversary Intent",
+        "goal": "Elicit",
+        "rationale": "Honeyfile access attempts reveal interest in sensitive files, backup data, credentials, and local configuration.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_LOGIN_FAILED": {
+      "attack": {
+        "rationale": "Failed SSH authentication attempts against the honeypot indicate password guessing or brute-force behavior.\n",
+        "tactic": "Credential Access",
+        "technique": "Brute Force",
+        "technique_id": "T1110"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The SSH honeypot exposes a fake login surface for observing authentication attempts.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_RECON_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as whoami, pwd, ls, uname, ip addr, ifconfig, ps, and netstat indicate post-login discovery activity.\n",
+        "related_techniques": [
+          "T1033 System Owner/User Discovery",
+          "T1016 System Network Configuration Discovery",
+          "T1057 Process Discovery"
+        ],
+        "tactic": "Discovery",
+        "technique": "System Information Discovery",
+        "technique_id": "T1082"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Commands entered after login reveal adversary discovery interests and operating style.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_TOOL_TRANSFER_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as wget, curl, ftp, scp, chmod, nc, or bash reverse shell patterns may indicate tool staging or payload transfer.\n",
+        "tactic": "Command and Control",
+        "technique": "Ingress Tool Transfer",
+        "technique_id": "T1105"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Adversary Direction",
+        "goal": "Affect",
+        "rationale": "A decoy shell can influence attacker behavior and redirect tool staging activity into a controlled observation environment.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYCREDENTIAL_USED": {
+      "attack": {
+        "rationale": "Submitting a planted credential to the fake web login panel indicates the adversary discovered and attempted to use unsecured credentials.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 5,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "Planted web credentials elicit credential reuse behavior against the fake admin panel.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Downloading honeyfiles from the fake web panel indicates attempted collection of local or exposed files.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 11,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Honeyfile download behavior helps identify the attacker's collection interests.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_SCANNER_PROBE": {
+      "attack": {
+        "rationale": "Requests to paths such as /.env, /wp-admin, /phpmyadmin, or /admin indicate web probing or scanning behavior.\n",
+        "tactic": "Reconnaissance",
+        "technique": "Active Scanning",
+        "technique_id": "T1595"
+      },
+      "detections": 15,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The fake web interface exposes probeable paths to observe scanner behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    }
+  },
+  "total_detections": 31,
+  "triggered_detection_rules": [
+    "WEB_HONEYCREDENTIAL_USED",
+    "WEB_HONEYFILE_ACCESS",
+    "WEB_SCANNER_PROBE"
+  ]
+}
+
+[+] Generating timeline and final reports...
+/opt/deception-lab/parser/generate_timeline.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  lines.append(f"Generated at: {datetime.utcnow().isoformat()}Z")
+[+] Timeline written to: /opt/deception-lab/reports/timeline.md
+[+] Markdown report written to: /opt/deception-lab/reports/report.md
+[+] JSON report written to: /opt/deception-lab/reports/report.json
+
+[+] Report files:
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 07:21 ..
+-rw-rw-r-- 1 lss lss 2.0K May 23 07:31 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 23 07:31 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 23 07:31 report.md
+-rw-rw-r-- 1 lss lss  18K May 23 07:31 timeline.md
+
+[+] Report generation completed.
+Main report: /opt/deception-lab/reports/report.md
+Timeline:    /opt/deception-lab/reports/timeline.md
+JSON report: /opt/deception-lab/reports/report.json
+
+=== Disk usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+17M     /opt/deception-lab
+1.2M    /opt/deception-lab/data
+48K     /opt/deception-lab/reports
+
+=== Done ===
+```
+
+### Step 12.13：建立 SD 卡壽命保護建議文件
+```
+cat > /opt/deception-lab/SD_CARD_NOTES.md <<'EOF'
+# SD Card Notes
+
+This Raspberry Pi deception lab writes logs and reports to the SD card.
+
+Recommendations:
+
+- Use at least a 64 GB high-endurance microSD card.
+- Keep Docker logs limited with max-size and max-file.
+- Run cleanup_old_logs.sh periodically.
+- Avoid exposing the lab to uncontrolled high-volume scanning.
+- Back up reports and important configuration files.
+- Consider moving /opt/deception-lab/data to USB SSD for longer experiments.
+
+Current log retention script:
+
+- /opt/deception-lab/scripts/cleanup_old_logs.sh
+
+Current report generation script:
+
+- /opt/deception-lab/scripts/generate_report.sh
+EOF
+```
+- 確認：
+```
+cat /opt/deception-lab/SD_CARD_NOTES.md
+```
+
+### Step 12.14：建立完整專案備份腳本
+這個腳本會備份設定、scripts、parser、reports，但不備份大型 Docker image。
+```
+mkdir -p /opt/deception-lab/backups/project
+```
+```
+cat > /opt/deception-lab/scripts/backup_project.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="/opt/deception-lab"
+BACKUP_DIR="$ROOT/backups/project"
+TS="$(date -u +"%Y%m%dT%H%M%SZ")"
+OUT="$BACKUP_DIR/deception-lab-backup-$TS.tar.gz"
+
+mkdir -p "$BACKUP_DIR"
+
+tar \
+  --exclude="$ROOT/backups" \
+  --exclude="$ROOT/parser/venv" \
+  --exclude="$ROOT/data/archive" \
+  -czf "$OUT" \
+  -C /opt deception-lab
+
+echo "[+] Backup created:"
+ls -lh "$OUT"
+EOF
+```
+- 設定權限、執行：
+```
+chmod +x /opt/deception-lab/scripts/backup_project.sh
+/opt/deception-lab/scripts/backup_project.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ chmod +x /opt/deception-lab/scripts/backup_project.sh
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/backup_project.sh
+tar: deception-lab/backups/project/deception-lab-backup-20260522T233607Z.tar.gz: file changed as we read it
+```
+- 確認：
+```
+ls -lah /opt/deception-lab/backups/project
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/backups/project
+total 8.3M
+drwxrwxr-x 2 lss lss 4.0K May 23 07:36 .
+drwxrwxr-x 5 lss lss 4.0K May 23 07:34 ..
+-rw-rw-r-- 1 lss lss 8.3M May 23 07:36 deception-lab-backup-20260522T233607Z.tar.gz
+```
+
+### Step 12.15：建立安全檢查腳本
+```
+cat > /opt/deception-lab/scripts/security_check.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="/opt/deception-lab"
+
+echo "=== Security Check: Services ==="
+docker compose -f "$ROOT/docker-compose.yml" ps
+
+echo
+echo "=== Security Check: Listening Ports ==="
+sudo ss -tulpn | grep -E ':22|:2222|:8080' || true
+
+echo
+echo "=== Security Check: UFW ==="
+sudo ufw status verbose
+
+echo
+echo "=== Security Check: Dangerous Docker Compose Settings ==="
+grep -nE "privileged|network_mode|/var/run/docker.sock|cap_add" "$ROOT/docker-compose.yml" || echo "[OK] No obvious dangerous settings found."
+
+echo
+echo "=== Security Check: Docker Logging Limits ==="
+grep -nA4 "logging:" "$ROOT/docker-compose.yml" || echo "[WARN] No logging limit found."
+
+echo
+echo "=== Security Check: Important File Permissions ==="
+ls -ld "$ROOT"
+ls -ld "$ROOT/data"
+ls -ld "$ROOT/scripts"
+ls -l "$ROOT/scripts"/*.sh | head
+
+echo
+echo "=== Security Check: Disk Usage ==="
+df -h /
+du -sh "$ROOT" || true
+du -sh "$ROOT/data" || true
+
+echo
+echo "=== Security Check: Reports ==="
+ls -lah "$ROOT/reports" || true
+
+echo
+echo "=== Security Check Completed ==="
+EOF
+```
+- 設定權限、執行：
+```
+chmod +x /opt/deception-lab/scripts/security_check.sh
+/opt/deception-lab/scripts/security_check.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ chmod +x /opt/deception-lab/scripts/security_check.sh
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/security_check.sh
+=== Security Check: Services ===
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS          PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     15 minutes ago   Up 15 minutes   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   15 minutes ago   Up 15 minutes   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+=== Security Check: Listening Ports ===
+tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=7376,fd=8))
+tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=7458,fd=8))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1188,fd=6))
+tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=7384,fd=8))
+tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=7464,fd=8))
+tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1188,fd=7))
+
+=== Security Check: UFW ===
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere
+2222/tcp                   ALLOW IN    Anywhere
+8080/tcp                   ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+2222/tcp (v6)              ALLOW IN    Anywhere (v6)
+8080/tcp (v6)              ALLOW IN    Anywhere (v6)
 
 
+=== Security Check: Dangerous Docker Compose Settings ===
+[OK] No obvious dangerous settings found.
 
+=== Security Check: Docker Logging Limits ===
+[WARN] No logging limit found.
 
+=== Security Check: Important File Permissions ===
+drwxrwxr-x 9 lss lss 4096 May 23 07:32 /opt/deception-lab
+drwxrwxr-x 9 lss lss 4096 May 22 03:50 /opt/deception-lab/data
+drwxrwxr-x 2 lss lss 4096 May 23 07:38 /opt/deception-lab/scripts
+-rwxrwxr-x 1 lss lss  787 May 23 07:16 /opt/deception-lab/scripts/apply_lab_firewall_lan_only.sh
+-rwxrwxr-x 1 lss lss  642 May 23 07:13 /opt/deception-lab/scripts/apply_lab_firewall.sh
+-rwxrwxr-x 1 lss lss  396 May 23 07:35 /opt/deception-lab/scripts/backup_project.sh
+-rwxrwxr-x 1 lss lss  352 May 23 07:11 /opt/deception-lab/scripts/backup_ufw_rules.sh
+-rwxrwxr-x 1 lss lss 1012 May 13 02:48 /opt/deception-lab/scripts/check_assets.sh
+-rwxrwxr-x 1 lss lss  512 May 11 05:20 /opt/deception-lab/scripts/check_env.sh
+-rwxrwxr-x 1 lss lss  759 May 23 06:49 /opt/deception-lab/scripts/check_phase11_results.sh
+-rwxrwxr-x 1 lss lss  519 May 15 07:14 /opt/deception-lab/scripts/cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 3019 May 15 06:52 /opt/deception-lab/scripts/collect_logs.sh
+-rwxrwxr-x 1 lss lss  678 May 22 03:09 /opt/deception-lab/scripts/generate_report.sh
 
+=== Security Check: Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+26M     /opt/deception-lab
+1.2M    /opt/deception-lab/data
 
+=== Security Check: Reports ===
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 07:32 ..
+-rw-rw-r-- 1 lss lss 2.0K May 23 07:31 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 23 07:31 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 23 07:31 report.md
+-rw-rw-r-- 1 lss lss  18K May 23 07:31 timeline.md
 
+=== Security Check Completed ===
+```
 
-
+### Step 12.16：建立後續擴充規劃
 
 
 

@@ -914,9 +914,140 @@ db-report:
 host=192.0.2.31
 username=report
 ```
+- 刪除本機測試下載檔：
+```
+rm -f /tmp/secrets.txt /tmp/backup_config.ini /tmp/database_passwords.txt
+```
+- 查看 access log：
+```
+tail -n 10 /opt/deception-lab/data/logs/web/web_access.jsonl
 
+# 你應該看到：
+"event_type": "web_honeyfile_access"
 
+# 這會被 parser 偵測成：
+WEB_HONEYFILE_ACCESS
 
+# 執行結果：
+lss@lss:/opt/deception-lab $ tail -n 10 /opt/deception-lab/data/logs/web/web_access.jsonl
+{"timestamp": "2026-05-12T18:36:26.542718+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-12T18:41:52.678577+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:10:34.116816+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:13:55.354556+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:22.564994+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/secrets.txt", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:22.565328+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "secrets.txt", "path": "/download/secrets.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-21T20:22:28.786823+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/backup_config.ini", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:28.787061+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "backup_config.ini", "path": "/download/backup_config.ini", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-21T20:22:35.106551+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/database_passwords.txt", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:35.106787+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "database_passwords.txt", "path": "/download/database_passwords.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+```
+
+### Step 11.12：測試 Web scanner path 探測
+- 執行：
+```
+curl -I http://127.0.0.1:8080/.env
+curl -I http://127.0.0.1:8080/wp-admin
+curl -I http://127.0.0.1:8080/phpmyadmin
+curl -I http://127.0.0.1:8080/server-status
+curl -I http://127.0.0.1:8080/actuator/env
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/.env
+HTTP/1.1 404 NOT FOUND
+Server: gunicorn
+Date: Fri, 22 May 2026 21:41:34 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Length: 342
+
+lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/wp-admin
+HTTP/1.1 404 NOT FOUND
+Server: gunicorn
+Date: Fri, 22 May 2026 21:41:50 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Length: 342
+
+lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/phpmyadmin
+HTTP/1.1 404 NOT FOUND
+Server: gunicorn
+Date: Fri, 22 May 2026 21:42:05 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Length: 342
+
+lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/server-status
+HTTP/1.1 404 NOT FOUND
+Server: gunicorn
+Date: Fri, 22 May 2026 21:42:11 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Length: 342
+
+lss@lss:/opt/deception-lab $ curl -I http://127.0.0.1:8080/actuator/env
+HTTP/1.1 404 NOT FOUND
+Server: gunicorn
+Date: Fri, 22 May 2026 21:42:18 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Length: 342
+
+# 確認：Step 11.12 的 Web scanner path 探測請求已成功送出。
+你測試的 5 個常見掃描路徑都有收到 Fake Web 回應：
+/.env
+/wp-admin
+/phpmyadmin
+/server-status
+/actuator/env
+它們全部回傳：HTTP/1.1 404 NOT FOUND 這是正常結果，不是錯誤。
+原因是這些路徑本來就不是實際存在的頁面；我們要測試的不是頁面是否存在，而是 Fake Web 是否能記錄「有人嘗試探測這些敏感路徑」。
+```
+- 查看 access log：
+```
+tail -n 20 /opt/deception-lab/data/logs/web/web_access.jsonl
+
+# 你應該看到部分事件包含："is_scanner_probe": true
+如果有看到，代表：
+[完成] scanner path request 已送出
+[完成] Fake Web 已記錄 scanner probe
+[完成] 後續 parser 會偵測為 WEB_SCANNER_PROBE
+
+這會被 parser 偵測成：WEB_SCANNER_PROBE
+
+# 目前判定：所以 Step 11.12：測試 Web scanner path 探測結果成功。
+[完成] /.env 探測
+[完成] /wp-admin 探測
+[完成] /phpmyadmin 探測
+[完成] /server-status 探測
+[完成] /actuator/env 探測
+[完成] web_access.jsonl 記錄成功
+[完成] is_scanner_probe = true
+[完成] tags 包含 scanner-probe
+所以 Step 11.12：測試 Web scanner path 探測結果成功。
+
+# 執行結果：
+lss@lss:/opt/deception-lab $ tail -n 20 /opt/deception-lab/data/logs/web/web_access.jsonl
+{"timestamp": "2026-05-11T21:57:19.330990+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "192.168.1.1", "method": "GET", "path": "/download/vpn_users.csv", "query_string": "", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-11T21:57:19.331247+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "192.168.1.1", "filename": "vpn_users.csv", "path": "/download/vpn_users.csv", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-11T22:10:43.882087+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-11T22:18:07.650530+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "192.168.1.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-11T22:18:07.668441+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "192.168.1.1", "method": "GET", "path": "/static/style.css", "query_string": "", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-12T18:36:26.542718+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-12T18:41:52.678577+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:10:34.116816+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:13:55.354556+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "POST", "path": "/login", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:22.564994+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/secrets.txt", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:22.565328+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "secrets.txt", "path": "/download/secrets.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-21T20:22:28.786823+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/backup_config.ini", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:28.787061+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "backup_config.ini", "path": "/download/backup_config.ini", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-21T20:22:35.106551+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/database_passwords.txt", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-21T20:22:35.106787+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "database_passwords.txt", "path": "/download/database_passwords.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-22T21:41:34.133872+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/.env", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T21:41:50.477889+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/wp-admin", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T21:42:05.980982+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/phpmyadmin", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T21:42:11.462027+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/server-status", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T21:42:18.142043+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/actuator/env", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+```
 
 
 

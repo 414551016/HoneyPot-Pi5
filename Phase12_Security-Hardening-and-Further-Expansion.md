@@ -1733,6 +1733,66 @@ deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie 
 deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   3 hours ago   Up 3 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
 
 === Security Check: Listening Ports ===
+tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=7376,fd=8))
+tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=7458,fd=8))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1188,fd=6))
+tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=7384,fd=8))
+tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=7464,fd=8))
+tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1188,fd=7))
+
+=== Security Check: UFW ===
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere
+2222/tcp                   ALLOW IN    Anywhere
+8080/tcp                   ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+2222/tcp (v6)              ALLOW IN    Anywhere (v6)
+8080/tcp (v6)              ALLOW IN    Anywhere (v6)
+
+
+=== Security Check: Dangerous Docker Compose Settings ===
+[OK] No obvious dangerous settings found.
+
+=== Security Check: Docker Logging Limits ===
+[WARN] No logging limit found.
+
+=== Security Check: Important File Permissions ===
+drwxrwxr-x 9 lss lss 4096 May 23 10:40 /opt/deception-lab
+drwxrwxr-x 9 lss lss 4096 May 22 03:50 /opt/deception-lab/data
+drwxrwxr-x 2 lss lss 4096 May 23 07:38 /opt/deception-lab/scripts
+-rwxrwxr-x 1 lss lss  787 May 23 07:16 /opt/deception-lab/scripts/apply_lab_firewall_lan_only.sh
+-rwxrwxr-x 1 lss lss  642 May 23 07:13 /opt/deception-lab/scripts/apply_lab_firewall.sh
+-rwxrwxr-x 1 lss lss  396 May 23 07:35 /opt/deception-lab/scripts/backup_project.sh
+-rwxrwxr-x 1 lss lss  352 May 23 07:11 /opt/deception-lab/scripts/backup_ufw_rules.sh
+-rwxrwxr-x 1 lss lss 1012 May 13 02:48 /opt/deception-lab/scripts/check_assets.sh
+-rwxrwxr-x 1 lss lss  512 May 11 05:20 /opt/deception-lab/scripts/check_env.sh
+-rwxrwxr-x 1 lss lss  759 May 23 06:49 /opt/deception-lab/scripts/check_phase11_results.sh
+-rwxrwxr-x 1 lss lss  519 May 15 07:14 /opt/deception-lab/scripts/cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 3019 May 15 06:52 /opt/deception-lab/scripts/collect_logs.sh
+-rwxrwxr-x 1 lss lss  678 May 22 03:09 /opt/deception-lab/scripts/generate_report.sh
+
+=== Security Check: Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+26M     /opt/deception-lab
+1.2M    /opt/deception-lab/data
+
+=== Security Check: Reports ===
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:40 ..
+-rw-rw-r-- 1 lss lss 2.0K May 23 10:34 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 23 10:34 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 23 10:34 report.md
+-rw-rw-r-- 1 lss lss  18K May 23 10:34 timeline.md
+
+=== Security Check Completed ===
 ```
 
 ### Step 12.21：建立第十二階段完成紀錄
@@ -1789,9 +1849,452 @@ MVP status:
 Completed.
 EOF
 ```
+- 確認：
+```
+cat /opt/deception-lab/PHASE12_READY.md
+```
+
+# Step 12.22：最終完成檢查
+- 請執行這些指令，貼給我確認：
+```
+/opt/deception-lab/scripts/security_check.sh
+ls -lah /opt/deception-lab
+ls -lah /opt/deception-lab/scripts
+ls -lah /opt/deception-lab/reports
+cat /opt/deception-lab/reports/report.json | jq '.summary'
+cat /opt/deception-lab/PHASE12_READY.md
+```
+- 執行結果：
+```
+lss@lss:~ $ /opt/deception-lab/scripts/security_check.sh
+=== Security Check: Services ===
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED         STATUS         PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     5 minutes ago   Up 5 minutes   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   5 minutes ago   Up 5 minutes   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+=== Security Check: Listening Ports ===
+tcp   LISTEN 0      4096         0.0.0.0:2222       0.0.0.0:*    users:(("docker-proxy",pid=10021,fd=8))
+tcp   LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*    users:(("docker-proxy",pid=10101,fd=8))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1188,fd=6))
+tcp   LISTEN 0      4096            [::]:2222          [::]:*    users:(("docker-proxy",pid=10027,fd=8))
+tcp   LISTEN 0      4096            [::]:8080          [::]:*    users:(("docker-proxy",pid=10108,fd=8))
+tcp   LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1188,fd=7))
+
+=== Security Check: UFW ===
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere
+2222/tcp                   ALLOW IN    Anywhere
+8080/tcp                   ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+2222/tcp (v6)              ALLOW IN    Anywhere (v6)
+8080/tcp (v6)              ALLOW IN    Anywhere (v6)
 
 
+=== Security Check: Dangerous Docker Compose Settings ===
+[OK] No obvious dangerous settings found.
 
+=== Security Check: Docker Logging Limits ===
+17:    logging:
+18-      driver: "json-file"
+19-      options:
+20-        max-size: "10m"
+21-        max-file: "3"
+--
+44:    logging:
+45-      driver: "json-file"
+46-      options:
+47-        max-size: "10m"
+48-        max-file: "3"
+
+=== Security Check: Important File Permissions ===
+drwxrwxr-x 9 lss lss 4096 May 23 10:47 /opt/deception-lab
+drwxrwxr-x 9 lss lss 4096 May 22 03:50 /opt/deception-lab/data
+drwxrwxr-x 2 lss lss 4096 May 23 07:38 /opt/deception-lab/scripts
+-rwxrwxr-x 1 lss lss  787 May 23 07:16 /opt/deception-lab/scripts/apply_lab_firewall_lan_only.sh
+-rwxrwxr-x 1 lss lss  642 May 23 07:13 /opt/deception-lab/scripts/apply_lab_firewall.sh
+-rwxrwxr-x 1 lss lss  396 May 23 07:35 /opt/deception-lab/scripts/backup_project.sh
+-rwxrwxr-x 1 lss lss  352 May 23 07:11 /opt/deception-lab/scripts/backup_ufw_rules.sh
+-rwxrwxr-x 1 lss lss 1012 May 13 02:48 /opt/deception-lab/scripts/check_assets.sh
+-rwxrwxr-x 1 lss lss  512 May 11 05:20 /opt/deception-lab/scripts/check_env.sh
+-rwxrwxr-x 1 lss lss  759 May 23 06:49 /opt/deception-lab/scripts/check_phase11_results.sh
+-rwxrwxr-x 1 lss lss  519 May 15 07:14 /opt/deception-lab/scripts/cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 3019 May 15 06:52 /opt/deception-lab/scripts/collect_logs.sh
+-rwxrwxr-x 1 lss lss  678 May 22 03:09 /opt/deception-lab/scripts/generate_report.sh
+
+=== Security Check: Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   58G  5.2G   50G  10% /
+26M     /opt/deception-lab
+1.3M    /opt/deception-lab/data
+
+=== Security Check: Reports ===
+total 60K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:47 ..
+-rw-rw-r-- 1 lss lss 2.3K May 23 10:52 mapping_report.md
+-rw-rw-r-- 1 lss lss  13K May 23 10:52 report.json
+-rw-rw-r-- 1 lss lss 5.8K May 23 10:52 report.md
+-rw-rw-r-- 1 lss lss  22K May 23 10:52 timeline.md
+
+=== Security Check Completed ===
+lss@lss:~ $ ls -lah /opt/deception-lab
+total 140K
+drwxrwxr-x 9 lss  lss  4.0K May 23 10:47 .
+drwxr-xr-x 4 root root 4.0K May 11 05:18 ..
+drwxrwxr-x 5 lss  lss  4.0K May 23 07:34 backups
+drwxrwxr-x 5 lss  lss  4.0K May 12 01:25 cowrie
+drwxrwxr-x 9 lss  lss  4.0K May 22 03:50 data
+-rw-rw-r-- 1 lss  lss  3.9K May 13 01:47 deception_assets.yml
+-rw-rw-r-- 1 lss  lss  1.2K May 23 10:47 docker-compose.before-logging-fix.yml
+-rw-rw-r-- 1 lss  lss   991 May 23 07:21 docker-compose.phase11.yml
+-rw-rw-r-- 1 lss  lss   313 May 12 01:38 docker-compose.phase3.yml
+-rw-rw-r-- 1 lss  lss   772 May 12 02:02 docker-compose.phase4.broken.yml
+-rw-rw-r-- 1 lss  lss   419 May 12 05:33 docker-compose.phase4-cowrie-only.yml
+-rw-rw-r-- 1 lss  lss   555 May 12 02:21 docker-compose.phase4.permission-error.yml
+-rw-rw-r-- 1 lss  lss   922 May 13 02:06 docker-compose.phase5.yml
+-rw-rw-r-- 1 lss  lss  1.2K May 23 10:47 docker-compose.yml
+-rw-rw-r-- 1 lss  lss   538 May 11 19:35 .env
+drwxrwxr-x 5 lss  lss  4.0K May 12 05:32 fake-web
+-rw-rw-r-- 1 lss  lss   579 May 23 10:32 FINAL_INDEX.md
+-rw-rw-r-- 1 lss  lss  1.5K May 23 10:25 FUTURE_WORK.md
+drwxrwxr-x 4 lss  lss  4.0K May 22 03:08 parser
+-rw-rw-r-- 1 lss  lss   744 May 22 03:32 PHASE10_READY.md
+-rw-rw-r-- 1 lss  lss   789 May 23 06:51 PHASE11_READY.md
+-rw-rw-r-- 1 lss  lss  1.4K May 23 10:41 PHASE12_READY.md
+-rw-rw-r-- 1 lss  lss   523 May 11 05:19 PHASE2_READY.md
+-rw-rw-r-- 1 lss  lss   381 May 11 22:37 PHASE3_READY.md
+-rw-rw-r-- 1 lss  lss   578 May 12 02:26 PHASE4_READY.md
+-rw-rw-r-- 1 lss  lss   773 May 12 06:13 PHASE5_READY.md
+-rw-rw-r-- 1 lss  lss   709 May 13 02:53 PHASE6_READY.md
+-rw-rw-r-- 1 lss  lss   718 May 15 07:29 PHASE7_READY.md
+-rw-rw-r-- 1 lss  lss   922 May 20 03:54 PHASE8_READY.md
+-rw-rw-r-- 1 lss  lss   848 May 21 08:15 PHASE9_READY.md
+-rw-rw-r-- 1 lss  lss  1.5K May 23 10:33 README.md
+drwxrwxr-x 2 lss  lss  4.0K May 22 03:11 reports
+drwxrwxr-x 2 lss  lss  4.0K May 23 07:38 scripts
+-rw-rw-r-- 1 lss  lss   613 May 23 07:32 SD_CARD_NOTES.md
+-rw-rw-r-- 1 lss  lss  1.1K May 23 07:07 SECURITY_NOTES.md
+lss@lss:~ $ ls -lah /opt/deception-lab/scripts
+total 104K
+drwxrwxr-x 2 lss lss 4.0K May 23 07:38 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:47 ..
+-rwxrwxr-x 1 lss lss  787 May 23 07:16 apply_lab_firewall_lan_only.sh
+-rwxrwxr-x 1 lss lss  642 May 23 07:13 apply_lab_firewall.sh
+-rwxrwxr-x 1 lss lss  396 May 23 07:35 backup_project.sh
+-rwxrwxr-x 1 lss lss  352 May 23 07:11 backup_ufw_rules.sh
+-rwxrwxr-x 1 lss lss 1012 May 13 02:48 check_assets.sh
+-rwxrwxr-x 1 lss lss  512 May 11 05:20 check_env.sh
+-rwxrwxr-x 1 lss lss  759 May 23 06:49 check_phase11_results.sh
+-rwxrwxr-x 1 lss lss  519 May 15 07:14 cleanup_old_logs.sh
+-rwxrwxr-x 1 lss lss 3.0K May 15 06:52 collect_logs.sh
+-rwxrwxr-x 1 lss lss  678 May 22 03:09 generate_report.sh
+-rwxrwxr-x 1 lss lss  127 May 11 19:52 logs_lab.sh
+-rwxrwxr-x 1 lss lss  203 May 11 19:53 restart_lab.sh
+-rwxrwxr-x 1 lss lss  880 May 21 08:12 run_mapping.sh
+-rwxrwxr-x 1 lss lss  529 May 20 03:26 run_parser.sh
+-rwxrwxr-x 1 lss lss 1.1K May 23 07:38 security_check.sh
+-rwxrwxr-x 1 lss lss  972 May 15 07:09 show_collected_logs.sh
+-rwxrwxr-x 1 lss lss  859 May 20 03:42 show_events.sh
+-rwxrwxr-x 1 lss lss 1.1K May 21 08:03 show_mapping.sh
+-rwxrwxr-x 1 lss lss  616 May 22 03:20 show_report.sh
+-rwxrwxr-x 1 lss lss  181 May 11 19:47 start_lab.sh
+-rwxrwxr-x 1 lss lss  637 May 15 07:21 status_lab.sh
+-rwxrwxr-x 1 lss lss  151 May 11 19:49 stop_lab.sh
+-rwxrwxr-x 1 lss lss 1.3K May 23 06:09 test_web_scenarios.sh
+-rwxrwxr-x 1 lss lss  513 May 23 07:30 weekly_maintenance.sh
+lss@lss:~ $ ls -lah /opt/deception-lab/reports
+total 60K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:47 ..
+-rw-rw-r-- 1 lss lss 2.3K May 23 10:52 mapping_report.md
+-rw-rw-r-- 1 lss lss  13K May 23 10:52 report.json
+-rw-rw-r-- 1 lss lss 5.8K May 23 10:52 report.md
+-rw-rw-r-- 1 lss lss  22K May 23 10:52 timeline.md
+lss@lss:~ $ cat /opt/deception-lab/reports/report.json | jq '.summary'
+{
+  "detections_by_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": 1,
+    "SSH_HONEYFILE_ACCESS": 2,
+    "SSH_RECON_COMMAND": 3,
+    "SSH_TOOL_TRANSFER_COMMAND": 2,
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 21,
+    "medium": 18
+  },
+  "events_by_source": {
+    "cowrie": 11,
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "ssh_command": 8,
+    "ssh_connection": 1,
+    "ssh_login_success": 1,
+    "ssh_logout": 1,
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "honeycredential_detections": 6,
+  "honeyfile_detections": 13,
+  "total_detections": 39,
+  "total_events": 79
+}
+lss@lss:~ $ cat /opt/deception-lab/PHASE12_READY.md
+# Phase 12 Ready
+
+Security hardening and future expansion planning have been completed.
+
+Completed items:
+
+- SECURITY_NOTES.md created
+- UFW backup script created
+- Firewall reset scripts created
+- Docker Compose dangerous setting check performed
+- Docker logging limits added
+- File permissions normalized
+- Log cleanup script verified
+- Weekly maintenance script created
+- SD_CARD_NOTES.md created
+- Project backup script created
+- Security check script created
+- FUTURE_WORK.md created
+- FINAL_INDEX.md created
+- README.md updated
+- Final report regenerated
+- Final security check performed
+
+Main safety principles:
+
+- Do not expose the lab directly to the Internet.
+- Keep the lab isolated from production networks.
+- Use only fake credentials and fake files.
+- Keep management SSH on port 22 separate from Cowrie on port 2222.
+- Keep Fake Web on port 8080 for lab testing only.
+- Regularly rotate logs and back up reports.
+
+Main maintenance scripts:
+
+- /opt/deception-lab/scripts/security_check.sh
+- /opt/deception-lab/scripts/weekly_maintenance.sh
+- /opt/deception-lab/scripts/cleanup_old_logs.sh
+- /opt/deception-lab/scripts/backup_project.sh
+
+Main final documents:
+
+- /opt/deception-lab/SECURITY_NOTES.md
+- /opt/deception-lab/SD_CARD_NOTES.md
+- /opt/deception-lab/FUTURE_WORK.md
+- /opt/deception-lab/FINAL_INDEX.md
+
+MVP status:
+
+Completed.
+```
+- 確認：Step 12.22 最終完成檢查已通過。
+```
+你這次重新檢查後，前一次的兩個疑點都已修正：
+
+Docker logging limits 已成功加入
+最終 report 已重新包含 Cowrie 與 Fake Web 事件
+
+------------------------------------------------------------------------
+1. 服務狀態正常
+
+目前兩個 deception service 都正常執行：
+
+deception-cowrie     Up 5 minutes
+deception-fake-web   Up 5 minutes
+
+port 也正常監聽：
+
+22/tcp    真實 Raspberry Pi SSH 管理入口
+2222/tcp  Cowrie SSH honeypot
+8080/tcp  Fake Web Admin Panel
+
+這代表 Docker Compose、Cowrie、Fake Web 都正常。
+
+------------------------------------------------------------------------
+2. UFW 防火牆狀態正常
+
+你的 UFW 是啟用狀態：
+
+Status: active
+Default: deny (incoming), allow (outgoing), deny (routed)
+
+目前允許的 inbound port 是：
+
+22/tcp
+2222/tcp
+8080/tcp
+
+這符合 MVP 設定：管理 SSH、Cowrie honeypot、Fake Web admin panel。
+
+------------------------------------------------------------------------
+3. Docker 危險設定檢查通過
+
+安全檢查顯示：
+
+[OK] No obvious dangerous settings found.
+
+代表目前 docker-compose.yml 沒有偵測到明顯高風險設定，例如：
+
+privileged
+network_mode
+/var/run/docker.sock
+cap_add
+
+這點通過。
+
+------------------------------------------------------------------------
+4. Docker logging limits 已修正成功
+
+這次已經看到：
+
+logging:
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+而且 Cowrie 與 Fake Web 兩個 service 都有 logging limit。這代表前一次的 [WARN] No logging limit found 已經修正完成。
+
+------------------------------------------------------------------------
+5. 檔案權限與腳本權限正常
+
+專案目錄目前是：
+
+/opt/deception-lab
+owner: lss:lss
+permission: drwxrwxr-x
+
+/opt/deception-lab/scripts 內的腳本都有可執行權限，例如：
+
+-rwxrwxr-x security_check.sh
+-rwxrwxr-x weekly_maintenance.sh
+-rwxrwxr-x backup_project.sh
+-rwxrwxr-x generate_report.sh
+-rwxrwxr-x test_web_scenarios.sh
+
+這代表維護、備份、報告、測試腳本都可以正常執行。
+
+------------------------------------------------------------------------
+6. 磁碟空間正常
+
+目前 SD 卡根目錄使用量：
+
+Size: 58G
+Used: 5.2G
+Avail: 50G
+Use%: 10%
+
+目前 /opt/deception-lab 約 26M，data 約 1.3M。對 MVP 實驗來說容量非常充足。
+
+------------------------------------------------------------------------
+7. 報告檔案正常產生
+
+目前 reports 目錄已有：
+
+mapping_report.md
+report.json
+report.md
+timeline.md
+
+且時間為最新產生：
+
+May 23 10:52
+
+這代表最終報告已成功重新產生。
+
+------------------------------------------------------------------------
+. 最終 report 已包含 Cowrie 與 Fake Web
+
+你的最新 report.json summary 顯示：
+
+"events_by_source": {
+  "cowrie": 11,
+  "fake-web": 68
+}
+
+這代表最終報告已經同時包含：
+
+Cowrie SSH honeypot events
+Fake Web events
+
+偵測結果也完整包含：
+
+SSH_HONEYCREDENTIAL_LOGIN
+SSH_HONEYFILE_ACCESS
+SSH_RECON_COMMAND
+SSH_TOOL_TRANSFER_COMMAND
+WEB_HONEYCREDENTIAL_USED
+WEB_HONEYFILE_ACCESS
+WEB_SCANNER_PROBE
+目前總計：
+
+total_events: 79
+total_detections: 39
+honeycredential_detections: 6
+honeyfile_detections: 13
+
+這表示第十一階段測試與第十二階段最終報告整合都成功。
+
+------------------------------------------------------------------------
+9. PHASE12_READY.md 已存在且內容正確
+
+你的 PHASE12_READY.md 顯示：
+
+MVP status:
+
+Completed.
+
+並且列出已完成：
+
+SECURITY_NOTES.md
+UFW backup script
+Firewall reset scripts
+Docker logging limits
+Weekly maintenance script
+Project backup script
+Security check script
+FUTURE_WORK.md
+FINAL_INDEX.md
+Final report regenerated
+Final security check performed
+
+這代表第十二階段完成紀錄也已建立成功。
+
+------------------------------------------------------------------------
+最終判定
+
+Step 12.22：最終完成檢查已通過。
+
+整個 Raspberry Pi 5 主動式資安防禦誘捕欺敵 MVP 的 12 個階段已完成：
+
+[完成] 第一階段：系統架構設計
+[完成] 第二階段：Raspberry Pi 5 環境準備
+[完成] 第三階段：Docker Compose 專案目錄建立
+[完成] 第四階段：Cowrie SSH honeypot
+[完成] 第五階段：Fake Web Admin Panel
+[完成] 第六階段：honeycredential / honeyfile
+[完成] 第七階段：集中式 log 收集
+[完成] 第八階段：Python parser / detection rules
+[完成] 第九階段：MITRE ATT&CK / Engage mapping
+[完成] 第十階段：timeline / Markdown / JSON report
+[完成] 第十一階段：測試攻擊情境
+[完成] 第十二階段：安全加固與後續擴充
+
+你現在的 MVP 可以正式視為完成。
+```
 
 
 

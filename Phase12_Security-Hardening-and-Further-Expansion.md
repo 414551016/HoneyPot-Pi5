@@ -1218,12 +1218,577 @@ drwxrwxr-x 9 lss lss 4.0K May 23 07:32 ..
 ```
 
 ### Step 12.16：建立後續擴充規劃
+- 執行
+```
+cat > /opt/deception-lab/FUTURE_WORK.md <<'EOF'
+# Future Work
 
+This document lists possible future extensions for the Raspberry Pi deception lab.
 
+## 1. Additional honeypot services
 
+Possible services:
 
+- HTTP API honeypot
+- FTP honeypot
+- SMB decoy share
+- MQTT honeypot for IoT scenarios
+- Modbus or ICS-like decoy endpoint in a closed lab network
 
+## 2. Better log pipeline
 
+Possible improvements:
+
+- Replace Docker log export with structured Cowrie JSON log
+- Add syslog collector
+- Add lightweight local SQLite event database
+- Export reports to remote storage
+- Add log signing or hash chain for evidence integrity
+
+## 3. Better dashboards
+
+Possible improvements:
+
+- Local Streamlit dashboard
+- Grafana + Loki
+- Lightweight Flask dashboard
+- Timeline visualization
+- MITRE coverage heatmap
+
+## 4. Better deception content
+
+Possible improvements:
+
+- More realistic fake file trees
+- Fake SSH history
+- Fake cloud credentials
+- Fake API tokens
+- Fake configuration backup
+- Role-based honeycredentials
+
+## 5. Safer deployment
+
+Possible improvements:
+
+- Move lab to isolated VLAN
+- Use USB SSD instead of microSD for logs
+- Use LAN-only firewall rules
+- Add scheduled backup
+- Add health check alerts
+
+## 6. Research extensions
+
+Possible research directions:
+
+- Compare attacker behavior across deception asset placement
+- Evaluate honeycredential effectiveness
+- Study attacker command sequence patterns
+- Generate defensive knowledge from observed behavior
+- Map deception actions to MITRE Engage goals
+EOF
+```
+- 確認：
+```
+cat /opt/deception-lab/FUTURE_WORK.md
+```
+
+### Step 12.17：建立最終完成報告索引
+- 執行
+```
+cat > /opt/deception-lab/FINAL_INDEX.md <<'EOF'
+# Raspberry Pi Deception Lab MVP Final Index
+
+## Core services
+
+- Cowrie SSH honeypot
+  - Port: 2222/tcp
+
+- Fake Web Admin Panel
+  - Port: 8080/tcp
+
+- Real Raspberry Pi SSH management
+  - Port: 22/tcp
+
+## Main commands
+
+Start lab:
+
+```bash
+/opt/deception-lab/scripts/start_lab.sh
+/opt/deception-lab/scripts/stop_lab.sh
+/opt/deception-lab/scripts/status_lab.sh
+/opt/deception-lab/scripts/run_parser.sh
+/opt/deception-lab/scripts/run_mapping.sh
+/opt/deception-lab/scripts/generate_report.sh
+/opt/deception-lab/scripts/security_check.sh
+/opt/deception-lab/scripts/backup_project.sh
+
+Main output files
+/opt/deception-lab/reports/report.md
+/opt/deception-lab/reports/report.json
+/opt/deception-lab/reports/timeline.md
+/opt/deception-lab/reports/mapping_report.md
+Main event files
+/opt/deception-lab/data/events/events.jsonl
+/opt/deception-lab/data/events/detections.jsonl
+/opt/deception-lab/data/events/events_summary.json
+/opt/deception-lab/data/events/mapping_summary.json
+/opt/deception-lab/data/events/attack_coverage.json
+/opt/deception-lab/data/events/engage_coverage.json
+Documentation
+/opt/deception-lab/README.md
+/opt/deception-lab/SECURITY_NOTES.md
+/opt/deception-lab/SD_CARD_NOTES.md
+/opt/deception-lab/FUTURE_WORK.md
+EOF
+```
+
+### Step 12.18：更新 README 加入最後指令
+```
+cat >> /opt/deception-lab/README.md <<'EOF'
+
+## Phase 12 Security and Maintenance
+
+Run security check:
+
+```bash
+/opt/deception-lab/scripts/security_check.sh
+/opt/deception-lab/scripts/weekly_maintenance.sh
+/opt/deception-lab/scripts/backup_project.sh
+/opt/deception-lab/SECURITY_NOTES.md
+/opt/deception-lab/SD_CARD_NOTES.md
+/opt/deception-lab/FUTURE_WORK.md
+/opt/deception-lab/FINAL_INDEX.md
+EOF
+```
+
+### Step 12.19：產生最終報告
+```
+/opt/deception-lab/scripts/generate_report.sh
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/generate_report.sh
+[+] Refreshing parser and mapping outputs...
+[+] Running parser first to refresh detections...
+[+] Collecting latest logs...
+[+] Collecting logs at UTC time: 20260523T023435Z
+[+] Exporting Cowrie Docker logs...
+[+] Collecting Fake Web access log...
+[+] Collecting Fake Web auth log...
+[+] Creating source manifest...
+[+] Creating collection summary...
+[+] Archiving collected logs...
+
+[+] Collection completed.
+[+] Current collected directory:
+total 48K
+drwxrwxr-x 2 lss lss 4.0K May 15 07:18 .
+drwxrwxr-x 9 lss lss 4.0K May 22 03:50 ..
+-rw-rw-r-- 1 lss lss  371 May 23 10:34 collection_summary.txt
+-rw-rw-r-- 1 lss lss 2.0K May 23 10:34 cowrie-docker.log
+-rw-rw-r-- 1 lss lss  579 May 15 07:18 README.md
+-rw-rw-r-- 1 lss lss  777 May 23 10:34 source_manifest.json
+-rw-rw-r-- 1 lss lss  18K May 23 10:34 web_access.jsonl
+-rw-rw-r-- 1 lss lss 3.9K May 23 10:34 web_auth.jsonl
+
+[+] Summary:
+Collection time UTC: 20260523T023435Z
+
+Collected files:
+
+- /opt/deception-lab/data/collected/cowrie-docker.log
+  size: 4.0K
+  lines: 15
+- /opt/deception-lab/data/collected/web_access.jsonl
+  size: 20K
+  lines: 58
+- /opt/deception-lab/data/collected/web_auth.jsonl
+  size: 4.0K
+  lines: 10
+- /opt/deception-lab/data/collected/source_manifest.json
+  size: 4.0K
+  lines: 26
+
+[+] Running event parser...
+[+] Parsing completed.
+[+] Events written to: /opt/deception-lab/data/events/events.jsonl
+[+] Detections written to: /opt/deception-lab/data/events/detections.jsonl
+[+] Summary written to: /opt/deception-lab/data/events/events_summary.json
+
+Total events: 68
+Total detections: 31
+
+[+] Event output files:
+total 72K
+drwxrwxr-x 2 lss lss 4.0K May 21 07:53 .
+drwxrwxr-x 9 lss lss 4.0K May 22 03:50 ..
+-rw-rw-r-- 1 lss lss 2.9K May 23 07:31 attack_coverage.json
+-rw-rw-r-- 1 lss lss  20K May 23 10:34 detections.jsonl
+-rw-rw-r-- 1 lss lss 2.2K May 23 07:31 engage_coverage.json
+-rw-rw-r-- 1 lss lss  24K May 23 10:34 events.jsonl
+-rw-rw-r-- 1 lss lss  456 May 23 10:34 events_summary.json
+-rw-rw-r-- 1 lss lss 6.0K May 23 07:31 mapping_summary.json
+
+[+] Event summary:
+{
+  "detections_by_rule": {
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 16,
+    "medium": 15
+  },
+  "events_by_source": {
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "generated_at": "2026-05-23T02:34:35.747222+00:00",
+  "total_detections": 31,
+  "total_events": 68
+}
+[+] Running MITRE mapping analyzer...
+[+] Mapping analysis completed.
+[+] Mapping summary: /opt/deception-lab/data/events/mapping_summary.json
+[+] ATT&CK coverage: /opt/deception-lab/data/events/attack_coverage.json
+[+] Engage coverage: /opt/deception-lab/data/events/engage_coverage.json
+
+Defined detection rules: 8
+Total detections: 31
+ATT&CK mapping coverage: 100.0%
+Engage mapping coverage: 100.0%
+
+[+] Generating mapping Markdown report...
+[+] Mapping markdown report written to: /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping output files:
+-rw-rw-r-- 1 lss lss 2.9K May 23 10:34 attack_coverage.json
+-rw-rw-r-- 1 lss lss 2.2K May 23 10:34 engage_coverage.json
+-rw-rw-r-- 1 lss lss 6.0K May 23 10:34 mapping_summary.json
+
+[+] Mapping report:
+-rw-rw-r-- 1 lss lss 2.0K May 23 10:34 /opt/deception-lab/reports/mapping_report.md
+
+[+] Mapping summary:
+{
+  "attack_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "defined_detection_rules": 8,
+  "detections_by_rule": {
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "engage_mapping_coverage": {
+    "coverage_percent": 100.0,
+    "mapped_defined_rules": 8,
+    "total_defined_rules": 8,
+    "triggered_without_mapping": [],
+    "unmapped_defined_rules": []
+  },
+  "generated_at": "2026-05-23T02:34:35.824378+00:00",
+  "input_detections": "/opt/deception-lab/data/events/detections.jsonl",
+  "per_rule": {
+    "SSH_HONEYCREDENTIAL_LOGIN": {
+      "attack": {
+        "rationale": "The attacker used a credential intentionally planted in deception assets. This indicates exposure to unsecured credential material.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "A planted SSH credential caused the adversary to reveal credential-use behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Attempting to read honeyfiles such as secrets.txt or backup_config.ini indicates interest in local sensitive data.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Reveal Adversary Intent",
+        "goal": "Elicit",
+        "rationale": "Honeyfile access attempts reveal interest in sensitive files, backup data, credentials, and local configuration.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_LOGIN_FAILED": {
+      "attack": {
+        "rationale": "Failed SSH authentication attempts against the honeypot indicate password guessing or brute-force behavior.\n",
+        "tactic": "Credential Access",
+        "technique": "Brute Force",
+        "technique_id": "T1110"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The SSH honeypot exposes a fake login surface for observing authentication attempts.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_RECON_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as whoami, pwd, ls, uname, ip addr, ifconfig, ps, and netstat indicate post-login discovery activity.\n",
+        "related_techniques": [
+          "T1033 System Owner/User Discovery",
+          "T1016 System Network Configuration Discovery",
+          "T1057 Process Discovery"
+        ],
+        "tactic": "Discovery",
+        "technique": "System Information Discovery",
+        "technique_id": "T1082"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Commands entered after login reveal adversary discovery interests and operating style.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "SSH_TOOL_TRANSFER_COMMAND": {
+      "attack": {
+        "rationale": "Commands such as wget, curl, ftp, scp, chmod, nc, or bash reverse shell patterns may indicate tool staging or payload transfer.\n",
+        "tactic": "Command and Control",
+        "technique": "Ingress Tool Transfer",
+        "technique_id": "T1105"
+      },
+      "detections": 0,
+      "engage": {
+        "activity": "Adversary Direction",
+        "goal": "Affect",
+        "rationale": "A decoy shell can influence attacker behavior and redirect tool staging activity into a controlled observation environment.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYCREDENTIAL_USED": {
+      "attack": {
+        "rationale": "Submitting a planted credential to the fake web login panel indicates the adversary discovered and attempted to use unsecured credentials.\n",
+        "tactic": "Credential Access",
+        "technique": "Unsecured Credentials",
+        "technique_id": "T1552"
+      },
+      "detections": 5,
+      "engage": {
+        "activity": "Credential Collection",
+        "goal": "Elicit",
+        "rationale": "Planted web credentials elicit credential reuse behavior against the fake admin panel.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_HONEYFILE_ACCESS": {
+      "attack": {
+        "rationale": "Downloading honeyfiles from the fake web panel indicates attempted collection of local or exposed files.\n",
+        "tactic": "Collection",
+        "technique": "Data from Local System",
+        "technique_id": "T1005"
+      },
+      "detections": 11,
+      "engage": {
+        "activity": "Collect Adversary Behavior",
+        "goal": "Understand",
+        "rationale": "Honeyfile download behavior helps identify the attacker's collection interests.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    },
+    "WEB_SCANNER_PROBE": {
+      "attack": {
+        "rationale": "Requests to paths such as /.env, /wp-admin, /phpmyadmin, or /admin indicate web probing or scanning behavior.\n",
+        "tactic": "Reconnaissance",
+        "technique": "Active Scanning",
+        "technique_id": "T1595"
+      },
+      "detections": 15,
+      "engage": {
+        "activity": "Expose Decoy Service",
+        "goal": "Expose",
+        "rationale": "The fake web interface exposes probeable paths to observe scanner behavior.\n"
+      },
+      "has_attack_mapping": true,
+      "has_engage_mapping": true
+    }
+  },
+  "total_detections": 31,
+  "triggered_detection_rules": [
+    "WEB_HONEYCREDENTIAL_USED",
+    "WEB_HONEYFILE_ACCESS",
+    "WEB_SCANNER_PROBE"
+  ]
+}
+
+[+] Generating timeline and final reports...
+/opt/deception-lab/parser/generate_timeline.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  lines.append(f"Generated at: {datetime.utcnow().isoformat()}Z")
+[+] Timeline written to: /opt/deception-lab/reports/timeline.md
+[+] Markdown report written to: /opt/deception-lab/reports/report.md
+[+] JSON report written to: /opt/deception-lab/reports/report.json
+
+[+] Report files:
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:32 ..
+-rw-rw-r-- 1 lss lss 2.0K May 23 10:34 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 23 10:34 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 23 10:34 report.md
+-rw-rw-r-- 1 lss lss  18K May 23 10:34 timeline.md
+
+[+] Report generation completed.
+Main report: /opt/deception-lab/reports/report.md
+Timeline:    /opt/deception-lab/reports/timeline.md
+JSON report: /opt/deception-lab/reports/report.json
+```
+- 確認：
+```
+ls -lah /opt/deception-lab/reports
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ ls -lah /opt/deception-lab/reports
+total 52K
+drwxrwxr-x 2 lss lss 4.0K May 22 03:11 .
+drwxrwxr-x 9 lss lss 4.0K May 23 10:32 ..
+-rw-rw-r-- 1 lss lss 2.0K May 23 10:34 mapping_report.md
+-rw-rw-r-- 1 lss lss  12K May 23 10:34 report.json
+-rw-rw-r-- 1 lss lss 5.4K May 23 10:34 report.md
+-rw-rw-r-- 1 lss lss  18K May 23 10:34 timeline.md
+```
+- 查看 summary：
+```
+cat /opt/deception-lab/reports/report.json | jq '.summary'
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ cat /opt/deception-lab/reports/report.json | jq '.summary'
+{
+  "detections_by_rule": {
+    "WEB_HONEYCREDENTIAL_USED": 5,
+    "WEB_HONEYFILE_ACCESS": 11,
+    "WEB_SCANNER_PROBE": 15
+  },
+  "detections_by_severity": {
+    "high": 16,
+    "medium": 15
+  },
+  "events_by_source": {
+    "fake-web": 68
+  },
+  "events_by_type": {
+    "web_honeyfile_access": 11,
+    "web_login_attempt": 10,
+    "web_request": 47
+  },
+  "honeycredential_detections": 5,
+  "honeyfile_detections": 11,
+  "total_detections": 31,
+  "total_events": 68
+}
+```
+
+### Step 12.20：執行最終安全檢查
+```
+/opt/deception-lab/scripts/security_check.sh
+
+#你要確認：
+Cowrie Up
+Fake Web Up
+UFW active
+Port 22, 2222, 8080 only
+No privileged / docker.sock / host networking
+Docker logging limits present
+Disk usage healthy
+Reports exist
+
+------------------------------------------------------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ /opt/deception-lab/scripts/security_check.sh
+=== Security Check: Services ===
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED       STATUS       PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     3 hours ago   Up 3 hours   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   3 hours ago   Up 3 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+=== Security Check: Listening Ports ===
+```
+
+### Step 12.21：建立第十二階段完成紀錄
+```
+cat > /opt/deception-lab/PHASE12_READY.md <<'EOF'
+# Phase 12 Ready
+
+Security hardening and future expansion planning have been completed.
+
+Completed items:
+
+- SECURITY_NOTES.md created
+- UFW backup script created
+- Firewall reset scripts created
+- Docker Compose dangerous setting check performed
+- Docker logging limits added
+- File permissions normalized
+- Log cleanup script verified
+- Weekly maintenance script created
+- SD_CARD_NOTES.md created
+- Project backup script created
+- Security check script created
+- FUTURE_WORK.md created
+- FINAL_INDEX.md created
+- README.md updated
+- Final report regenerated
+- Final security check performed
+
+Main safety principles:
+
+- Do not expose the lab directly to the Internet.
+- Keep the lab isolated from production networks.
+- Use only fake credentials and fake files.
+- Keep management SSH on port 22 separate from Cowrie on port 2222.
+- Keep Fake Web on port 8080 for lab testing only.
+- Regularly rotate logs and back up reports.
+
+Main maintenance scripts:
+
+- /opt/deception-lab/scripts/security_check.sh
+- /opt/deception-lab/scripts/weekly_maintenance.sh
+- /opt/deception-lab/scripts/cleanup_old_logs.sh
+- /opt/deception-lab/scripts/backup_project.sh
+
+Main final documents:
+
+- /opt/deception-lab/SECURITY_NOTES.md
+- /opt/deception-lab/SD_CARD_NOTES.md
+- /opt/deception-lab/FUTURE_WORK.md
+- /opt/deception-lab/FINAL_INDEX.md
+
+MVP status:
+
+Completed.
+EOF
+```
 
 
 

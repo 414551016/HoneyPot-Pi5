@@ -1,5 +1,14 @@
 # Streamlit Dashboard 與 Demo 操作流程
 它會直接讀取你現有的 MVP 輸出，不要求改動目前 /opt/deception-lab pipeline。
+```
+Dashboard 階段定義成：
+Phase B1: Streamlit Dashboard MVP
+Phase B2: Demo Storyboard + 操作腳本
+Phase B3: 視覺化強化：ATT&CK matrix / Engage matrix / attack session view
+Phase B4: Live refresh / auto polling / demo mode
+Phase B5: 論文與簡報用截圖輸出
+
+```
 
 ### Streamlit Dashboard
 - 建議放置路徑：

@@ -794,7 +794,56 @@ Raspberry Pi boot
 ```
 sudo reboot
 
+重開後等 1 分鐘，再執行：
+cd /opt/deception-lab
+sudo docker compose ps
+sudo systemctl status deception-dashboard.service --no-pager
+ss -lntp | grep -E "2222|8080|8501"
 
+----------------------------------------
+# 執行結果：
+Using username "lss".
+lss@192.168.1.167's password:
+Linux lss 6.18.29+rpt-rpi-2712 #1 SMP PREEMPT Debian 1:6.18.29-1+rpt1 (2026-05-1                                     2) aarch64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue May 26 02:27:06 2026 from 192.168.1.1
+lss@lss:~ $ cd /opt/deception-lab
+lss@lss:/opt/deception-lab $ sudo docker compose ps
+[sudo] password for lss:
+NAME                 IMAGE                    COMMAND                  SERVICE                                         CREATED      STATUS          PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie                                          2 days ago   Up 27 seconds   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223                                     /tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web                                        2 days ago   Up 28 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+lss@lss:/opt/deception-lab $ sudo systemctl status deception-dashboard.service -                                     -no-pager
+● deception-dashboard.service - Deception Lab Streamlit Dashboard
+     Loaded: loaded (/etc/systemd/system/deception-dashboard.service; enabled; p                                     reset: enabled)
+     Active: active (running) since Tue 2026-05-26 02:43:07 CST; 36s ago
+ Invocation: 0869fe85669241ac8789c9ac600eb06d
+   Main PID: 1216 (streamlit)
+      Tasks: 8 (limit: 9621)
+        CPU: 800ms
+     CGroup: /system.slice/deception-dashboard.service
+             └─1216 /opt/deception-lab/.venv/bin/python3 /opt/deception-lab/.ve…
+
+May 26 02:43:07 lss systemd[1]: Started deception-dashboard.service - Dece…oard.
+May 26 02:43:09 lss streamlit[1216]: Collecting usage statistics. To deacti…lse.
+May 26 02:43:09 lss streamlit[1216]: 2026-05-26 02:43:09.987 Uvicorn server…8501
+May 26 02:43:10 lss streamlit[1216]:   You can now view your Streamlit app …ser.
+May 26 02:43:10 lss streamlit[1216]:   Local URL: http://localhost:8501
+May 26 02:43:10 lss streamlit[1216]:   Network URL: http://192.168.1.164:8501
+May 26 02:43:10 lss streamlit[1216]:   External URL: http://125.229.21.105:8501
+Hint: Some lines were ellipsized, use -l to show in full.
+lss@lss:/opt/deception-lab $ ss -lntp | grep -E "2222|8080|8501"
+LISTEN 0      2048         0.0.0.0:8501      0.0.0.0:*    users:(("streamlit",pi                                     d=1216,fd=6))
+LISTEN 0      4096         0.0.0.0:8080      0.0.0.0:*                                                               
+LISTEN 0      4096         0.0.0.0:2222      0.0.0.0:*                                                               
+LISTEN 0      4096            [::]:8080         [::]:*                                                               
+LISTEN 0      4096            [::]:2222         [::]:*  
 ```
 
 

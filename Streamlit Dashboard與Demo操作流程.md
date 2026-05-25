@@ -689,7 +689,114 @@ journalctl -u deception-dashboard.service -f
 
 # 看最近 100 行 log：
 journalctl -u deception-dashboard.service -n 100 --no-pager
+-------
+執行結果：
+lss@lss:~ $ journalctl -u deception-dashboard.service -n 100 --no-pager
+May 26 02:17:48 lss systemd[1]: Started deception-dashboard.service - Deception Lab Streamlit Dashboard.
+May 26 02:17:50 lss streamlit[1200]: Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+May 26 02:17:51 lss streamlit[1200]: 2026-05-26 02:17:51.012 Uvicorn server started on 0.0.0.0:8501
+May 26 02:17:51 lss streamlit[1200]:   You can now view your Streamlit app in your browser.
+May 26 02:17:51 lss streamlit[1200]:   Local URL: http://localhost:8501
+May 26 02:17:51 lss streamlit[1200]:   Network URL: http://192.168.1.164:8501
+May 26 02:17:51 lss streamlit[1200]:   External URL: http://125.229.21.105:8501
+
 ```
+### 建議再確認 Docker 服務也會開機啟動
+- 如果你的 deception lab 是 Docker Compose 啟動，建議也確認 containers 有 restart policy。查看：
+```
+cd /opt/deception-lab
+sudo docker compose ps
+
+--------------------------
+# 執行結果：
+lss@lss:~ $ sudo docker compose ps
+no configuration file provided: not found
+這是正常的：你現在在家目錄 ~ 執行，所以 Docker Compose 找不到 docker-compose.yml。
+
+lss@lss:/opt/deception-lab $ sudo docker compose ps
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED      STATUS          PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     2 days ago   Up 14 minutes   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   2 days ago   Up 14 minutes   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+確認：你的 Docker Compose 服務是正常的。
+目前狀態：
+deception-cowrie      Up 17 minutes   0.0.0.0:2222->2222/tcp
+deception-fake-web    Up 17 minutes   0.0.0.0:8080->8080/tcp
+這代表：
+Cowrie SSH honeypot 正在跑
+Fake Web Admin 正在跑
+Docker Compose 專案位置正確：/opt/deception-lab
+
+
+```
+- 檢查 docker-compose.yml 裡有沒有設定自動重啟：
+```
+cd /opt/deception-lab
+grep -n "restart:" docker-compose.yml
+
+-------
+# 執行結果：
+lss@lss:/opt/deception-lab $ grep -n "restart:" docker-compose.yml
+5:    restart: unless-stopped
+28:    restart: unless-stopped
+很好，這代表 docker-compose.yml 已經有自動重啟設定：
+也就是你的兩個 Docker services：
+cowrie
+fake-web
+都會在 Docker daemon 啟動後自動恢復。這部分已完成。
+```
+- 確認 Streamlit Dashboard systemd service 是否也完成
+```
+sudo systemctl status deception-dashboard.service
+
+---------------------------
+# 執行結果：
+lss@lss:/opt/deception-lab $ sudo systemctl status deception-dashboard.service
+● deception-dashboard.service - Deception Lab Streamlit Dashboard
+     Loaded: loaded (/etc/systemd/system/deception-dashboard.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-05-26 02:17:48 CST; 21min ago
+ Invocation: 9d81822ddcd04641adfd1f8299bccabd
+   Main PID: 1200 (streamlit)
+      Tasks: 12 (limit: 9626)
+        CPU: 4.088s
+     CGroup: /system.slice/deception-dashboard.service
+             └─1200 /opt/deception-lab/.venv/bin/python3 /opt/deception-lab/.venv/bin/streamlit run /opt/deception-la>
+
+May 26 02:17:48 lss systemd[1]: Started deception-dashboard.service - Deception Lab Streamlit Dashboard.
+May 26 02:17:50 lss streamlit[1200]: Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals>
+May 26 02:17:51 lss streamlit[1200]: 2026-05-26 02:17:51.012 Uvicorn server started on 0.0.0.0:8501
+May 26 02:17:51 lss streamlit[1200]:   You can now view your Streamlit app in your browser.
+May 26 02:17:51 lss streamlit[1200]:   Local URL: http://localhost:8501
+May 26 02:17:51 lss streamlit[1200]:   Network URL: http://192.168.1.164:8501
+May 26 02:17:51 lss streamlit[1200]:   External URL: http://125.229.21.105:8501
+lines 1-17/17 (END)
+確認完成：Streamlit Dashboard 已經設定成開機自動啟動，而且目前正在正常執行。
+狀態重點：
+Loaded: loaded (/etc/systemd/system/deception-dashboard.service; enabled)
+Active: active (running)
+Uvicorn server started on 0.0.0.0:8501
+Network URL: http://192.168.1.164:8501
+這代表：
+PASS: systemd service 已建立
+PASS: service 已 enabled，開機會自動啟動
+PASS: Streamlit 目前正在執行
+PASS: Dashboard 監聽 0.0.0.0:8501
+PASS: LAN 可用網址為 http://192.168.1.164:8501
+
+
+現在你的平台開機後應該會自動恢復：
+Raspberry Pi boot
+→ Docker daemon starts
+→ Cowrie starts on 2222
+→ Fake Web Admin starts on 8080
+→ Streamlit Dashboard starts on 8501
+```
+- 最後做一次 reboot 驗證：
+```
+sudo reboot
+
+
+```
+
 
 
 

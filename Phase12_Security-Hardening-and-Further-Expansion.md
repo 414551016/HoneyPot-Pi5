@@ -2787,6 +2787,22 @@ http://192.168.1.167:8080
 
 ------------------------------------------------------------------------
 # 執行結果：
+![](images/login.png)
+
+# Fake Web Admin Panel 的 honeycredential 帳號密碼如下：
+  admin / Admin@12345
+  backup / Backup2026!
+  iotadmin / iot_admin_2026
+  operator / P@ssw0rd!    
+
+# 測試輸入：
+    username: admin
+    password: wrongpassword
+    # Internal Device Management Console
+    
+#然後再測試 honeycredential：
+    username: backup
+    password: Backup2026!
 
 ```
 - 再展示報告：

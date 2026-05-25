@@ -626,6 +626,7 @@ streamlit run dashboard/app.py \
 ```
 http://192.168.1.164:8501
 ```
+![](images/Deception-Lab-Dashboard.png)
 - 假設你的專案與 venv 是：
 ```
 /opt/deception-lab

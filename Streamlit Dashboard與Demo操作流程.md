@@ -625,8 +625,47 @@ streamlit run dashboard/app.py \
 - Deception Lab IP
 ```
 http://192.168.1.164:8501
+
+--------------------------------------------------------------------------------
+這版 Dashboard 已包含：
+
+Overview
+    總事件數
+detection 數
+    事件類型分布
+    event timeline trend
+    events_summary.json
+    mapping_summary.json
+Event Timeline
+    讀取 events.jsonl
+    顯示事件時間線
+    支援 keyword search
+    可查看單筆 raw event
+Detections
+    讀取 detections.jsonl
+    severity / rule / source IP 統計
+    detection table
+ATT&CK Coverage
+    讀取 attack_coverage.json
+    以 best-effort 方式解析 technique / tactic / count / covered 欄位
+    顯示表格與統計圖
+Engage Coverage
+    讀取 engage_coverage.json
+    顯示 deception activity / approach coverage
+Honey Artifacts
+    從 events.jsonl 與 detections.jsonl 掃描 honeycredential / honeyfile 類事件
+    顯示 honeycredential-like 與 honeyfile-like 統計
+Demo Runbook
+    內建展示流程
+    適合論文 demo、lab demo、口試或系統展示
+Raw Reports
+    直接顯示：
+    report.md
+    timeline.md
+    report.json
 ```
 ![](images/Deception-Lab-Dashboard.png)
+
 - 假設你的專案與 venv 是：
 ```
 /opt/deception-lab
@@ -844,7 +883,9 @@ LISTEN 0      2048         0.0.0.0:8501      0.0.0.0:*    users:(("streamlit",pi
 LISTEN 0      4096         0.0.0.0:8080      0.0.0.0:*                                                               
 LISTEN 0      4096         0.0.0.0:2222      0.0.0.0:*                                                               
 LISTEN 0      4096            [::]:8080         [::]:*                                                               
-LISTEN 0      4096            [::]:2222         [::]:*  
+LISTEN 0      4096            [::]:2222         [::]:*
+
+到這裡，Phase B1 Dashboard MVP + 開機自動啟動部署可以標記為完成。
 ```
 
 

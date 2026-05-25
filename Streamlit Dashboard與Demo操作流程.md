@@ -3,6 +3,7 @@
 ```
 Dashboard 階段定義成：
 Phase B1: Streamlit Dashboard MVP
+Phase B1-deploy: Docker services + Dashboard 開機自動啟動
 Phase B2: Demo Storyboard + 操作腳本
 Phase B3: 視覺化強化：ATT&CK matrix / Engage matrix / attack session view
 Phase B4: Live refresh / auto polling / demo mode

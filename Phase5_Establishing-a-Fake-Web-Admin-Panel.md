@@ -969,7 +969,12 @@ pwd
     username: backup
     password: Backup2026!
     # 如果登入後看到 dashboard，就是正常。
-    
+
+    # Fake Web Admin Panel 的 honeycredential 帳號密碼如下：
+    admin / Admin@12345
+    backup / Backup2026!
+    iotadmin / iot_admin_2026
+    operator / P@ssw0rd!    
     ```
 
 ## Step 5.20：測試 honeyfile 下載

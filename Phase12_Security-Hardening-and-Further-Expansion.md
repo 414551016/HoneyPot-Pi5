@@ -2782,12 +2782,12 @@ Collected files:
   lines: 26
 ```
 - 接著展示 Web：
+  ![](images/login.png)
 ```
 http://192.168.1.167:8080
 
 ------------------------------------------------------------------------
 # 執行結果：
-![](images/login.png)
 
 # Fake Web Admin Panel 的 honeycredential 帳號密碼如下：
   admin / Admin@12345

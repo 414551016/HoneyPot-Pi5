@@ -621,4 +621,76 @@ streamlit run dashboard/app.py \
   --server.headless true
 ```
 
+### 讓 Raspberry Pi 開機後自動啟動 Streamlit Dashboard
+- Deception Lab IP
+```
+http://192.168.1.164:8501
+```
+- 假設你的專案與 venv 是：
+```
+/opt/deception-lab
+/opt/deception-lab/.venv
+/opt/deception-lab/dashboard/app.py
+
+# 1. 建立 systemd service
+sudo nano /etc/systemd/system/deception-dashboard.service
+## 貼上：
+[Unit]
+Description=Deception Lab Streamlit Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lss
+Group=lss
+WorkingDirectory=/opt/deception-lab
+Environment="PATH=/opt/deception-lab/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/deception-lab/.venv/bin/streamlit run /opt/deception-lab/dashboard/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+## 存檔離開。
+如果你的 Linux 使用者不是 lss，請先確認：whoami
+然後把 service 裡的這兩行改成你的帳號：
+User=lss
+Group=lss
+
+# 2. 重新載入 systemd
+sudo systemctl daemon-reload
+
+# 3. 設定開機自動啟動
+sudo systemctl enable deception-dashboard.service
+
+# 4. 立即啟動
+sudo systemctl start deception-dashboard.service
+
+# 5. 檢查狀態
+sudo systemctl status deception-dashboard.service
+
+## 正常會看到類似：Active: active (running)
+
+# 6. 然後從你的電腦開：
+http://192.168.1.164:8501
+```
+- 常用維護指令
+```
+# 重啟 Dashboard：
+sudo systemctl restart deception-dashboard.service
+
+# 停止 Dashboard：
+sudo systemctl stop deception-dashboard.service
+
+# 看即時 log：
+journalctl -u deception-dashboard.service -f
+
+# 看最近 100 行 log：
+journalctl -u deception-dashboard.service -n 100 --no-pager
+```
+
+
+
 

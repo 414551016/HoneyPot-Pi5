@@ -607,10 +607,18 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install streamlit pandas
 
-啟動：
+# 啟動 Streamlit
 streamlit run dashboard/app.py --server.address 0.0.0.0 --server.port 8501
 ```
+- 啟動 Streamlit
+```
+cd /opt/deception-lab
+source .venv/bin/activate
 
-
+streamlit run dashboard/app.py \
+  --server.address 0.0.0.0 \
+  --server.port 8501 \
+  --server.headless true
+```
 
 

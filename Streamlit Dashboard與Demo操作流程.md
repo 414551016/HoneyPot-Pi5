@@ -9,6 +9,11 @@ Phase B3: 視覺化強化：ATT&CK matrix / Engage matrix / attack session view
 Phase B4: Live refresh / auto polling / demo mode
 Phase B5: 論文與簡報用截圖輸出
 
+# 
+B2_Demo-Storyboard_驗證腳本與固定攻擊故事線
+B3_Dashboard_視覺化強化
+B4_Live_Auto-refresh_Demo_Mode
+B5_論文-簡報-影片展示素材整理
 ```
 
 ### Streamlit Dashboard

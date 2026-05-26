@@ -3282,8 +3282,30 @@ Honey Artifacts 頁面把 honeycredential 與 honeyfile 相關事件獨立整理
 講法：
   最後系統會輸出可保存的 Markdown / JSON 報告，這讓 demo 結果可以作為實驗紀錄，也可以納入論文或簡報。
 ```
+### 7. 一段完整展示講稿
+```
+你可以照這段講：
+這是 Raspberry Pi 5 單機版主動式防禦誘捕欺敵平台的 Phase B2 controlled demo。
+我先執行 demo_attack.sh，模擬攻擊者接觸 fake web admin、提交假帳密、探測敏感路徑，並對 Cowrie SSH honeypot 進行登入嘗試。
+接著系統會自動收集 Docker logs 與 fake web logs，透過 parser 轉成 events.jsonl，再由 detection rules 產生 detections.jsonl。
+每一條 detection rule 都會對應到 MITRE ATT&CK 與 MITRE Engage。ATT&CK 用來描述攻擊技術，例如 Active Scanning、Brute Force、Unsecured Credentials、Data from Local System；Engage 則用來描述欺敵目標，例如 Expose Decoy Service、Credential Collection、Collect Adversary Behavior。
+最後 Dashboard 會呈現事件時間線、偵測統計、ATT&CK coverage、Engage coverage、honeycredential / honeyfile 事件，以及 Markdown / JSON 報告。
+```
+### 8. Phase B2 驗收標準
+```
+你可以在筆記或報告裡寫：
+Phase B2 Acceptance Criteria
 
-
+[PASS] demo_attack.sh can execute controlled Web and SSH interactions.
+[PASS] Fake Web Admin produces web_request, web_login_attempt, and scanner-probe events.
+[PASS] Cowrie produces ssh_connection and ssh_login_failed events.
+[PASS] Parser regenerates events.jsonl and detections.jsonl.
+[PASS] Detection rules produce high and medium severity alerts.
+[PASS] MITRE ATT&CK mapping coverage reaches 100%.
+[PASS] MITRE Engage mapping coverage reaches 100%.
+[PASS] report.md, report.json, timeline.md, and mapping_report.md are generated.
+[PASS] Streamlit Dashboard can refresh and visualize updated outputs.
+```
 
 
 

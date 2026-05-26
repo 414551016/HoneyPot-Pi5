@@ -1073,6 +1073,72 @@ DeprecationWarning: datetime.datetime.utcnow() is deprecated 它不影響功能�
 
 總結：其中 Attack Storyline 會把目前的 158 筆 events 與 61 筆 detections 串成可展示的攻擊敘事；Demo Mode 則把你的 demo 操作流程和即時統計放在同一頁，方便口頭展示。
 ```
+- 目前狀態判定：
+```
+Phase B1 Streamlit Dashboard MVP: PASS
+Phase B1-deploy systemd auto-start: PASS
+Phase B2 controlled demo attack flow: PASS
+Phase B2 parser/report integration: PASS
+Phase B2 cleanup needed: remove two obsolete placeholder commands
+```
+### 確認：新版 demo_attack.sh 執行成功，Phase B2 可以正式結案。
+- 重點結果如下：
+```
+Total events: 158
+Total detections: 61
+ATT&CK mapping coverage: 100.0%
+Engage mapping coverage: 100.0%
+
+# 成功產生與更新的檔案包括：
+/opt/deception-lab/data/events/events.jsonl
+/opt/deception-lab/data/events/detections.jsonl
+/opt/deception-lab/data/events/events_summary.json
+/opt/deception-lab/data/events/mapping_summary.json
+/opt/deception-lab/data/events/attack_coverage.json
+/opt/deception-lab/data/events/engage_coverage.json
+/opt/deception-lab/reports/report.md
+/opt/deception-lab/reports/report.json
+/opt/deception-lab/reports/timeline.md
+/opt/deception-lab/reports/mapping_report.md
+
+# 你的偵測統計也完整：
+SSH_HONEYCREDENTIAL_LOGIN: 1
+SSH_HONEYFILE_ACCESS: 2
+SSH_LOGIN_FAILED: 5
+SSH_RECON_COMMAND: 3
+SSH_TOOL_TRANSFER_COMMAND: 2
+WEB_HONEYCREDENTIAL_USED: 6
+WEB_HONEYFILE_ACCESS: 11
+WEB_SCANNER_PROBE: 31
+
+# 這代表 controlled demo 已經成功涵蓋：
+Fake Web Admin 存取
+Web honeycredential 使用
+Honeyfile / scanner-like path 存取
+Cowrie SSH login attempt
+Parser 更新
+Detection rules 觸發
+ATT&CK mapping 更新
+Engage mapping 更新
+Timeline / report 產生
+Dashboard 可刷新顯示
+
+Permission denied 仍然是合理結果，因為這次 SSH 使用的是：admin / Spring2026!
+
+它觸發的是 SSH_LOGIN_FAILED，不是 SSH_HONEYCREDENTIAL_LOGIN。你的資料裡已經有 SSH_HONEYCREDENTIAL_LOGIN: 1，表示之前或其他流程已成功觸發過 honeycredential login。
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

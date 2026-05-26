@@ -1128,6 +1128,74 @@ Permission denied 仍然是合理結果，因為這次 SSH 使用的是：admin 
 它觸發的是 SSH_LOGIN_FAILED，不是 SSH_HONEYCREDENTIAL_LOGIN。你的資料裡已經有 SSH_HONEYCREDENTIAL_LOGIN: 1，表示之前或其他流程已成功觸發過 honeycredential login。
 ```
 
+## 驗證與展示流程
+Phase B2 的展示重點不是「Dashboard 長什麼樣」，而是證明你已經有一條 可重現、可驗證、可解釋的 controlled demo attack flow：
+- Phase B2 要驗證 5 件事：
+```
+1. demo_attack.sh 可以穩定執行
+2. Web / SSH deception surfaces 會產生事件
+3. Parser 能把 logs 轉成 events.jsonl / detections.jsonl
+4. Mapping analyzer 能產生 ATT&CK / Engage coverage
+5. Reports 與 Dashboard 能呈現結果
+```
+- 2. Demo 前檢查
+```
+展示前先確認服務都在跑：
+cd /opt/deception-lab
+
+----------------------------------
+sudo docker compose ps
+執行結果：
+lss@lss:/opt/deception-lab $ sudo docker compose ps
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED      STATUS       PORTS
+deception-cowrie     cowrie/cowrie:latest     "/cowrie/cowrie-env/…"   cowrie     2 days ago   Up 6 hours   0.0.0.0:2222->2222/tcp, [::]:2222->2222/tcp, 2223/tcp
+deception-fake-web   deception-lab-fake-web   "gunicorn --bind 0.0…"   fake-web   2 days ago   Up 6 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+----------------------------------
+sudo systemctl status deception-dashboard.service --no-pager
+執行結果：
+lss@lss:/opt/deception-lab $ sudo systemctl status deception-dashboard.service --no-pager
+● deception-dashboard.service - Deception Lab Streamlit Dashboard
+     Loaded: loaded (/etc/systemd/system/deception-dashboard.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-05-26 02:43:07 CST; 5h 57min ago
+ Invocation: 0869fe85669241ac8789c9ac600eb06d
+   Main PID: 1216 (streamlit)
+      Tasks: 12 (limit: 9621)
+        CPU: 38.292s
+     CGroup: /system.slice/deception-dashboard.service
+             └─1216 /opt/deception-lab/.venv/bin/python3 /opt/deception-lab/.venv/bin/streamlit run /opt/deception-l…
+
+May 26 03:39:51 lss streamlit[1216]:   File "pyarrow/array.pxi", line 390, in pyarrow.lib.array
+May 26 03:39:51 lss streamlit[1216]:   File "pyarrow/array.pxi", line 91, in pyarrow.lib._ndarray_to_array
+May 26 03:39:51 lss streamlit[1216]:   File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+May 26 03:39:51 lss streamlit[1216]: pyarrow.lib.ArrowInvalid: ("Could not convert 'MITRE Engage' with type …object')
+May 26 03:39:55 lss streamlit[1216]: 2026-05-26 03:39:55.074 Please replace `use_container_width` with `width`.
+May 26 03:39:55 lss streamlit[1216]: `use_container_width` will be removed after 2025-12-31.
+May 26 03:39:55 lss streamlit[1216]: For `use_container_width=True`, use `width='stretch'`. For `use_contain…ntent'`.
+May 26 03:39:55 lss streamlit[1216]: 2026-05-26 03:39:55.079 Please replace `use_container_width` with `width`.
+May 26 03:39:55 lss streamlit[1216]: `use_container_width` will be removed after 2025-12-31.
+May 26 03:39:55 lss streamlit[1216]: For `use_container_width=True`, use `width='stretch'`. For `use_contain…ntent'`.
+Hint: Some lines were ellipsized, use -l to show in full.
+
+----------------------------------
+ss -lntp | grep -E "2222|8080|8501"
+執行結果：
+lss@lss:/opt/deception-lab $ ss -lntp | grep -E "2222|8080|8501"
+LISTEN 0      2048         0.0.0.0:8501      0.0.0.0:*    users:(("streamlit",pid=1216,fd=6))
+LISTEN 0      4096         0.0.0.0:8080      0.0.0.0:*
+LISTEN 0      4096         0.0.0.0:2222      0.0.0.0:*
+LISTEN 0      4096            [::]:8080         [::]:*
+LISTEN 0      4096            [::]:2222         [::]:*
+
+# 預期要看到：
+2222  Cowrie SSH honeypot
+8080  Fake Web Admin
+8501  Streamlit Dashboard
+
+# 再開 Dashboard：
+http://192.168.1.164:8501
+```
+
 
 
 

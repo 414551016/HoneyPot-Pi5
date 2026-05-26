@@ -3307,6 +3307,118 @@ Phase B2 Acceptance Criteria
 [PASS] Streamlit Dashboard can refresh and visualize updated outputs.
 ```
 
+## MITRE ATT&CK Coverage（覆蓋率）
+在 MITRE ATT&CK Coverage（覆蓋率） 的脈絡下，這些代碼（如 T1595、T1110）代表的是攻擊者使用的特定技術（Techniques）。
+Coverage 的意思是：你的安全工具（EDR、SIEM、防火牆等）是否能偵測或防護這些攻擊行為。
+### 一、ATT&CK Coverage 是什麼？
+```
+ATT&CK Coverage = 防禦系統對攻擊技術的偵測/防護能力
+例如：
+✅ 有 coverage → 能偵測或阻擋
+⚠️ 部分 coverage → 只能看到部分跡象
+❌ 無 coverage → 完全看不到
+```
+
+### 二、各技術說明
+以下針對你列的每一個 Technique 做重點解釋
+- 📌T1595 – Active Scanning（主動掃描）
+```
+意義
+  攻擊者主動掃描目標系統或網路，尋找漏洞或可用服務。
+常見行為
+  Port scan（掃描開放 port）
+  Service scan（辨識服務版本）
+  Vulnerability scan（弱點掃描）
+目的
+  找「攻擊入口」
+Coverage 重點
+  IDS/IPS 偵測掃描行為
+  異常大量連線警告
+```
+- 📌T1110 – Brute Force（暴力破解）
+```
+意義
+  攻擊者嘗試大量帳號/密碼組合來登入系統。
+常見形式
+  Password guessing
+  Credential stuffing（使用外洩帳密）
+  Dictionary attack
+目的
+  取得帳號控制權
+Coverage 重點
+  登入失敗次數異常
+  帳號鎖定機制
+  多重驗證（MFA）
+```
+- 📌T1552 – Unsecured Credentials（未妥善保護的憑證）
+```
+意義
+  攻擊者從不安全位置取得帳號密碼或憑證
+常見來源
+  設定檔（plaintext password）
+  程式碼（hardcoded credentials）
+  Windows registry / memory
+目的
+  直接取得合法登入資訊
+Coverage 重點
+  憑證掃描與保護
+  Data Loss Prevention（DLP）
+  secrets 管理
+```
+- 📌T1005 – Data from Local System（本地資料竊取）
+```
+意義
+  攻擊者從受害主機中取得資料
+常見資料
+  文件
+  設定檔
+  資料庫
+目的
+  資料外洩（Data Exfiltration）
+Coverage 重點
+  檔案存取監控
+  異常資料讀取行為
+  EDR 行為分析
+```
+-  📌T1082 – System Information Discovery（系統資訊蒐集）
+```
+意義
+  攻擊者蒐集系統環境資訊
+常見資訊
+  OS版本
+  CPU / RAM
+  主機名稱
+  網路設定
+常見指令
+  systeminfo
+  uname -a
+  ipconfig
+目的
+  瞭解環境，決定下一步攻擊
+Coverage 重點
+  指令執行監控
+  PowerShell / Shell 行為分析
+```
+- 📌T1105 – Ingress Tool Transfer（工具下載）
+```
+意義
+  攻擊者將惡意工具傳入受害系統
+常見方式
+  HTTP / HTTPS 下載
+  FTP
+  PowerShell 下載腳本
+範例
+  powershell Invoke-WebRequest
+目的
+  安裝後門、惡意程式
+Coverage 重點
+  網路流量監控
+  可疑下載行為
+  檔案完整性檢查
+```
+### 三、整體攻擊流程對應（幫你理解）
+
+
 
 
 

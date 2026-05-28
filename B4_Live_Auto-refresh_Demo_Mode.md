@@ -1048,10 +1048,28 @@ st.sidebar.caption("Tip: run Streamlit with --server.address 0.0.0.0 for LAN dem
 st.sidebar.caption(f"Display timezone: {APP_TZ}")
 EOF
 ```
+- 檢查PY語法：
+```
+python -m py_compile dashboard/app.py
+```
+- 重啟 Dashboard：
+```
+sudo systemctl restart deception-dashboard.service
+sudo systemctl status deception-dashboard.service --no-pager
 
+# 開啟：
+http://192.168.1.164:8501
 
-
-
+# 驗證重點：
+  1. Sidebar 有 Enable auto refresh
+  2. Sidebar 可選 Refresh interval
+  3. Dashboard title 下方有 Dashboard last refreshed: ... Asia/Taipei
+  4. Event Timeline 顯示 _time_tw
+  5. Detections 顯示 _time_tw
+  6. Attack Storyline 顯示 Asia/Taipei 時間
+  7. Demo Mode 有 Output file freshness
+  8. Raw Reports 多了 mapping_report.md
+```
 
 
 

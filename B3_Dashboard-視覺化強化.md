@@ -438,14 +438,51 @@ May 29 03:11:39 lss streamlit[1967]:   Network URL: http://192.168.1.164:8501
 May 29 03:11:39 lss streamlit[1967]:   External URL: http://125.229.21.105:8501
 
 # 再開瀏覽器：http://192.168.1.164:8501
+
+# 左側應該看到新增：
+  Attack Storyline
+  Demo Mode
 ```
 - 左側應該看到新增：
-  ![B3 Deception Lab Dashboard](image/B3_Deception-Lab-Dashboard.png)
+  ![B3 Deception Lab Dashboard](images/B3_Deception-Lab-Dashboard.png)
 
+- B3-6：執行展示驗證
+```
+# Terminal 執行 demo
+cd /opt/deception-lab
+/opt/deception-lab/scripts/demo_attack.sh 127.0.0.1
 
+# Dashboard 上操作
+依序點：
+  Overview
+  → Demo Mode
+  → Attack Storyline
+  → Detections
+  → ATT&CK Coverage
+  → Engage Coverage
+  → Raw Reports
 
+# 展示講法：
+  這裡可以看到 demo script 產生的 web probing、honeycredential、honeyfile、SSH login attempt 等互動，經過 parser 轉成事件，再經由 detection rules 觸發偵測，最後對應到 ATT&CK 與 Engage。
+```
 
-
+## 確認：Phase B3 初步執行成功。
+```
+從截圖可確認：
+  PASS: 左側選單已新增 Attack Storyline
+  PASS: 左側選單已新增 Demo Mode
+  PASS: Demo Mode 可顯示 Total events / Total detections
+  PASS: ATT&CK coverage = 100.0%
+  PASS: Engage coverage = 100.0%
+  PASS: Event Timeline 可看到 demo_attack.sh 產生的新事件
+  PASS: 事件來源 IP 已出現 192.168.1.164
+目前你 Dashboard 顯示：
+  Total events: 200
+  Total detections: 79
+  ATT&CK coverage: 100.0%
+  Engage coverage: 100.0%
+所以 Phase B3-1 / B3-2 / B3-3 已通過。
+```
 
 
 

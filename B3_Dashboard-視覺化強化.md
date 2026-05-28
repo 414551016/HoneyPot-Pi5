@@ -268,11 +268,177 @@ elif page == "Attack Storyline":
 ```
 - B3-3：新增 Demo Mode 頁面
 ```
+新增一頁：Demo Mode
+這頁專門展示目前 demo 是否成功，包含：
+  目前事件數
+  目前 detection 數
+  ATT&CK coverage
+  Engage coverage
+  Demo 操作流程
+  可複製的 demo_attack.sh 指令
 ```
+- 在 Attack Storyline 區塊後面加入 Demo Mode
+```
+elif page == "Demo Mode":
+    st.subheader("Demo Mode")
 
+    st.markdown(
+        """
+        This page is designed for live demonstration of the controlled deception workflow.
 
+        **Demo flow:**
 
+        1. Trigger controlled web interaction.
+        2. Submit fake web credential.
+        3. Probe honeyfile-like and scanner-like paths.
+        4. Trigger Cowrie SSH login attempt.
+        5. Regenerate parser, mapping, and reports.
+        6. Refresh the dashboard and explain the resulting evidence.
+        """
+    )
 
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total events", len(events_df))
+    c2.metric("Total detections", len(detections_df))
+
+    attack_cov = None
+    engage_cov = None
+
+    if isinstance(mapping_summary, dict):
+        attack_cov = (
+            mapping_summary
+            .get("attack_mapping_coverage", {})
+            .get("coverage_percent", None)
+        )
+        engage_cov = (
+            mapping_summary
+            .get("engage_mapping_coverage", {})
+            .get("coverage_percent", None)
+        )
+
+    c3.metric("ATT&CK coverage", f"{attack_cov}%" if attack_cov is not None else "N/A")
+    c4.metric("Engage coverage", f"{engage_cov}%" if engage_cov is not None else "N/A")
+
+    st.subheader("Run controlled demo")
+
+    st.code(
+        """cd /opt/deception-lab
+/opt/deception-lab/scripts/demo_attack.sh 127.0.0.1
+""",
+        language="bash",
+    )
+
+    st.subheader("LAN demo URL")
+
+    st.code(
+        """http://192.168.1.164:8501
+""",
+        language="text",
+    )
+
+    st.subheader("Expected evidence")
+
+    expected = pd.DataFrame([
+        {
+            "Step": "Web probing",
+            "Expected event": "web_request",
+            "Expected detection": "WEB_SCANNER_PROBE",
+            "ATT&CK": "T1595 Active Scanning",
+            "Engage": "Expose / Expose Decoy Service",
+        },
+        {
+            "Step": "Fake web credential submission",
+            "Expected event": "web_login_attempt",
+            "Expected detection": "WEB_HONEYCREDENTIAL_USED",
+            "ATT&CK": "T1552 Unsecured Credentials",
+            "Engage": "Elicit / Credential Collection",
+        },
+        {
+            "Step": "Honeyfile-like path access",
+            "Expected event": "web_honeyfile_access",
+            "Expected detection": "WEB_HONEYFILE_ACCESS",
+            "ATT&CK": "T1005 Data from Local System",
+            "Engage": "Understand / Collect Adversary Behavior",
+        },
+        {
+            "Step": "SSH login attempt",
+            "Expected event": "ssh_login_failed",
+            "Expected detection": "SSH_LOGIN_FAILED",
+            "ATT&CK": "T1110 Brute Force",
+            "Engage": "Expose / Expose Decoy Service",
+        },
+        {
+            "Step": "SSH honeycredential login",
+            "Expected event": "ssh_login_success",
+            "Expected detection": "SSH_HONEYCREDENTIAL_LOGIN",
+            "ATT&CK": "T1552 Unsecured Credentials",
+            "Engage": "Elicit / Credential Collection",
+        },
+        {
+            "Step": "SSH command behavior",
+            "Expected event": "ssh_command",
+            "Expected detection": "SSH_RECON_COMMAND / SSH_HONEYFILE_ACCESS / SSH_TOOL_TRANSFER_COMMAND",
+            "ATT&CK": "T1082 / T1005 / T1105",
+            "Engage": "Understand / Elicit / Affect",
+        },
+    ])
+
+    st.dataframe(expected, use_container_width=True, height=300)
+
+    st.subheader("Current detection rules")
+
+    if not detections_df.empty:
+        rule_col = first_existing_column(detections_df, ["rule_id", "rule", "rule_name", "detection"])
+        if rule_col:
+            demo_rules = detections_df[rule_col].fillna("<missing>").astype(str).value_counts().reset_index()
+            demo_rules.columns = ["rule", "count"]
+            st.bar_chart(demo_rules.set_index("rule"))
+            st.dataframe(demo_rules, use_container_width=True)
+        else:
+            st.info("No detection rule column found.")
+    else:
+        st.info("No detections loaded.")
+```
+- B3-4：檢查 Python 語法：修改完後先不要急著重啟，先檢查語法：
+```
+cd /opt/deception-lab
+
+source .venv/bin/activate
+python -m py_compile dashboard/app.py
+
+-------------------------------------------
+執行結果：如果沒有輸出，代表語法通過。
+```
+- B3-5：重啟 Dashboard
+```
+因為你是 systemd 管理 Streamlit，所以執行：
+sudo systemctl restart deception-dashboard.service
+
+---------------------------------------------
+確認狀態：
+sudo systemctl status deception-dashboard.service --no-pager
+執行結果：
+(.venv) lss@lss:/opt/deception-lab $ sudo systemctl status deception-dashboard.service --no-pager
+● deception-dashboard.service - Deception Lab Streamlit Dashboard
+     Loaded: loaded (/etc/systemd/system/deception-dashboard.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2026-05-29 03:11:38 CST; 1min 58s ago
+ Invocation: e451d6bc783541049727f0322333f906
+   Main PID: 1967 (streamlit)
+      Tasks: 8 (limit: 9621)
+        CPU: 750ms
+     CGroup: /system.slice/deception-dashboard.service
+             └─1967 /opt/deception-lab/.venv/bin/python3 /opt/deception-lab/.venv/bin/streamlit run /opt/deception-lab/dashboa…
+
+May 29 03:11:38 lss systemd[1]: Started deception-dashboard.service - Deception Lab Streamlit Dashboard.
+May 29 03:11:39 lss streamlit[1967]: Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+May 29 03:11:39 lss streamlit[1967]: 2026-05-29 03:11:39.269 Uvicorn server started on 0.0.0.0:8501
+May 29 03:11:39 lss streamlit[1967]:   You can now view your Streamlit app in your browser.
+May 29 03:11:39 lss streamlit[1967]:   Local URL: http://localhost:8501
+May 29 03:11:39 lss streamlit[1967]:   Network URL: http://192.168.1.164:8501
+May 29 03:11:39 lss streamlit[1967]:   External URL: http://125.229.21.105:8501
+
+# 再開瀏覽器：http://192.168.1.164:8501
+```
 
 
 

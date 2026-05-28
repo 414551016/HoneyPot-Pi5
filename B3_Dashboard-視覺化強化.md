@@ -439,8 +439,8 @@ May 29 03:11:39 lss streamlit[1967]:   External URL: http://125.229.21.105:8501
 
 # 再開瀏覽器：http://192.168.1.164:8501
 ```
-
-
+- 左側應該看到新增：
+  ![B3 Deception Lab Dashboard](image/B3_Deception-Lab-Dashboard.png)
 
 
 
